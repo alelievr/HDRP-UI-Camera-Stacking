@@ -7,6 +7,10 @@ This is achieved by taking advantage of the [customRender](https://docs.unity3d.
 https://user-images.githubusercontent.com/6877923/127684238-1f149a4f-1677-4428-b3f8-7ba51c6c93d6.mp4
 
 
+This implementation also provides all the benefits of standard camera stacking:
+- No post process bleeding on UI (motion vectors, ect.)
+- No clipping in the geometry
+
 ## Installation
 
 TODO
