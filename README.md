@@ -1,6 +1,11 @@
 # HDRP UI Camera Stacking
 
-Optimized implementation of camera stacking for UI only in HDRP.
+The HDRP UI Camera Stacking package allows you to stack multiple camera rendering UI only at a fraction of the cost of a standard camera.
+
+This is achieved by taking advantage of the [customRender](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html#UnityEngine_Rendering_HighDefinition_HDAdditionalCameraData_customRender) feature to render only the GUI elements and nothing else, with the only downside to not be able to render Lit objects which is generally find for UI.
+
+https://user-images.githubusercontent.com/6877923/127684238-1f149a4f-1677-4428-b3f8-7ba51c6c93d6.mp4
+
 
 ## Installation
 
@@ -24,4 +29,4 @@ In the UI Camera gameobject a canvas was also created and correctly configured w
 
 ### 3D Object / HDRP shaders rendering issues
 
-Currently rendering UI elements with HDRP shaders or 3D objects is not supported.
+Currently rendering UI elements with HDRP shaders or 3D objects is not supported and will result in unexpected behaviors
