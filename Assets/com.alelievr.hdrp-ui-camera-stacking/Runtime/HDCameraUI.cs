@@ -1,146 +1,181 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using System.Collections.Generic;
+using System.Linq;
 
-// TODO: Create menu item with correct setup
-
-namespace UnityEngine.Rendering.HighDefinition
+/// <summary>
+/// When this component is added to a camera, it replaces the standard rendering by a single optimized pass to render the GUI in screen space.
+/// </summary>
+[ExecuteAlways]
+[RequireComponent(typeof(Camera))]
+public class HDCameraUI : MonoBehaviour
 {
-    [ExecuteAlways]
-    [RequireComponent(typeof(HDAdditionalCameraData))]
-    public class HDCameraUI : MonoBehaviour
+    /// <summary>
+    /// Select which layer mask to use to render the UI.
+    /// </summary>
+    [Tooltip("Select which layer mask to use to render the UI.")]
+    public LayerMask uiLayerMask = 1 << 5;
+
+    /// <summary>
+    /// Select in which order the UI cameras are composited, higher priority will be executed before.
+    /// </summary>
+    [Tooltip("Select in which order the UI cameras are composited, higher priority will be executed before.")]
+    public float priority = 0;
+
+    /// <summary>
+    /// Use this property to apply a post process shader effect on the UI. The shader must be compatible with Graphics.Blit().
+    /// see https://github.com/h33p/Unity-Graphics-Demo/blob/master/Assets/Asset%20Store/PostProcessing/Resources/Shaders/Blit.shader
+    /// </summary>
+    [Tooltip("Apply a post process effect on the UI buffer. The shader must be compatible with Graphics.Blit().")]
+    public Material customPostEffect;
+
+    /// <summary>
+    /// Internal render texture used to store the UI before compositing with the main camera.
+    /// </summary>
+    [HideInInspector]
+    public RenderTexture renderTexture;
+
+    /// <summary>
+    /// Disables the culling typically done every frame while rendering the UI. This is an optimization and only works if your GUI elements are not dynamic.
+    /// </summary>
+    [Tooltip("Disables the culling typically done every frame while rendering the UI. This is an optimization and only works if your GUI elements are not dynamic.")]
+    public bool oneTimeCulling;
+
+    /// <summary>
+    /// Specifies the graphics format to use when rendering the UI.
+    /// </summary>
+    [Tooltip("Specifies the graphics format to use when rendering the UI.")]
+    public GraphicsFormat graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+
+    [System.NonSerialized]
+    bool updateCulling = true;
+    CullingResults cullingResults;
+    [SerializeField]
+    internal bool showAdvancedSettings;
+    [SerializeField]
+    Shader blitWithBlending; // Force the serialization of the shader in the scene so it ends up in the build
+
+    HDAdditionalCameraData data;
+    ShaderTagId[] hdTransparentPassNames;
+    ProfilingSampler cullingSampler;
+    ProfilingSampler renderingSampler;
+    ProfilingSampler uiCameraStackingSampler;
+
+    // Start is called before the first frame update
+    void OnEnable()
     {
-        HDAdditionalCameraData cameraData;
+        data = GetComponent<HDAdditionalCameraData>();
 
-        // TODO: share with other RTHandle
-        RTHandle uiHandle;
+        if (data == null)
+            return;
 
-        Material uiBlit;
+        data.customRender -= DoRenderUI;
+        data.customRender += DoRenderUI;
 
-        // Start is called before the first frame update
-        [System.NonSerialized]
-        new bool enabled = false;
-
-        void OnEnable()
+        hdTransparentPassNames = new ShaderTagId[]
         {
-            if (enabled)
-                OnDisable();
-            enabled = true;
-            cameraData = GetComponent<HDAdditionalCameraData>();
-            cameraData.customRender -= RenderUI;
-            cameraData.customRender += RenderUI;
+            HDShaderPassNames.s_TransparentBackfaceName,
+            HDShaderPassNames.s_ForwardOnlyName,
+            HDShaderPassNames.s_ForwardName,
+            HDShaderPassNames.s_SRPDefaultUnlitName
+        };
 
-            uiHandle = RTHandles.Alloc(
-                Vector2.one, TextureXR.slices, dimension: TextureXR.dimension,
-                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
-                useDynamicScale: true, name: "HDRP UI Buffer"
-            );
+        // TODO: add option to have depth buffer
+        // TODO: Add VR support
+        renderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1);
+        renderTexture.dimension = TextureDimension.Tex2DArray;
+        renderTexture.volumeDepth = 1;
 
-            // TODO: move to another object
-            RenderPipelineManager.endCameraRendering -= ApplyUI;
-            RenderPipelineManager.endCameraRendering += ApplyUI;
+        cullingSampler = new ProfilingSampler("UI Culling");
+        renderingSampler = new ProfilingSampler("UI Rendering");
+        uiCameraStackingSampler = new ProfilingSampler("Render UI Camera Stacking");
 
-            Debug.Log("OnEnable");
+        if (blitWithBlending == null)
+            blitWithBlending = Shader.Find("Hidden/HDRP/UI_Compositing");
 
-            uiBlit = CoreUtils.CreateEngineMaterial("Hidden/Unlit/UIBlit");
+        CameraStackingCompositing.uiList.Add(this);
+    }
+
+    void OnDisable()
+    {
+        if (data == null)
+            return;
+
+        data.customRender -= DoRenderUI;
+        CameraStackingCompositing.uiList.Remove(this);
+    }
+
+    void UpdateRenderTexture(Camera camera)
+    {
+        if (camera.pixelWidth != renderTexture.width
+            || camera.pixelHeight != renderTexture.height
+            || renderTexture.graphicsFormat != graphicsFormat)
+        {
+            renderTexture.Release();
+            renderTexture.width = camera.pixelWidth;
+            renderTexture.height = camera.pixelHeight;
+            renderTexture.graphicsFormat = graphicsFormat;
+            renderTexture.Create();
         }
+    }
 
-        void OnDisable()
+    void CullUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera)
+    {
+        // TODO: add an option to reuse the culling from last frame
+        if (updateCulling)
         {
-            Debug.Log("OnDisable");
-            enabled = false;
-            cameraData.customRender -= RenderUI;
-            RenderPipelineManager.endCameraRendering -= ApplyUI;
-            uiHandle.Release();
-            CoreUtils.Destroy(uiBlit);
-            uiHandle = null;
-        }
-
-        void OnDestroy()
-        {
-            uiHandle?.Release();
-        }
-
-        void RenderUI(ScriptableRenderContext ctx, HDCamera hdCamera)
-        {
-            // TODO: cache
-            if (hdCamera.camera != GetComponent<Camera>() && hdCamera.camera.cameraType == CameraType.Game)
-                return;
-
-            Debug.Log("Custom Render");
-            // ctx.DrawUIOverlay(hdCamera.camera);
-
-            ScriptableRenderContext.EmitGeometryForCamera(hdCamera.camera);
-            // ScriptableRenderContext.EmitWorldGeometryForSceneView(hdCamera.camera);
-
-            hdCamera.camera.TryGetCullingParameters(out var cullingParameters);
-            var cullingResults = ctx.Cull(ref cullingParameters);
-
-            // var drawSettings = new DrawingSettings();
-            // drawSettings.SetShaderPassName(0, HDShaderPassNames.s_ForwardOnlyName);
-            // drawSettings.SetShaderPassName(1, HDShaderPassNames.s_ForwardName);
-            // drawSettings.SetShaderPassName(2, HDShaderPassNames.s_SRPDefaultUnlitName);
-            // drawSettings.perObjectData = PerObjectData.MotionVectors;
-            // drawSettings.sortingSettings = new SortingSettings(hdCamera.camera) { criteria = SortingCriteria.CommonTransparent };
-
-            // var filter = new FilteringSettings(RenderQueueRange.all, hdCamera.camera.cullingMask);
-            // filter.excludeMotionVectorObjects = false;
-            // filter = FilteringSettings.defaultValue;
-
-            // var stateBlock = new RenderStateBlock(RenderStateMask.Nothing);
-
-            // // Bind UI buffer:
-            Debug.Log(hdCamera.camera);
-            var cmd = CommandBufferPool.Get("test2");
-            CoreUtils.SetRenderTarget(cmd, uiHandle);
-            cmd.ClearRenderTarget(false, true, Color.clear);
-            
-            // ctx.DrawRenderers(cullingResults, ref drawSettings, ref filter);
-
-            ShaderTagId[] litForwardTags = { HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_ForwardName, HDShaderPassNames.s_SRPDefaultUnlitName, new ShaderTagId("Default")};
-
-            var result = new RendererListDesc(litForwardTags, cullingResults, hdCamera.camera)
+            using (new ProfilingScope(cmd, cullingSampler))
             {
-                rendererConfiguration = PerObjectData.None,
-                renderQueueRange = RenderQueueRange.transparent,
-                sortingCriteria = SortingCriteria.CommonTransparent,
-                excludeObjectMotionVectors = false,
-                layerMask = hdCamera.camera.cullingMask,
-            };
-
-            CoreUtils.DrawRendererList(ctx, cmd, RendererList.Create(result));
-
-            // var result = new RendererListDesc(litForwardTags, cullingResults, hdCamera.camera)
-            // {
-            //     rendererConfiguration = PerObjectData.None,
-            //     renderQueueRange = ,
-            //     sortingCriteria = SortingCriteria.CommonTransparent,
-            //     excludeObjectMotionVectors = false,
-            //     layerMask = ,
-            // };
-
-            // var cmd = CommandBufferPool.Get("UI Rendering");
-            // CoreUtils.DrawRendererList(ctx, cmd, );
-            // ctx.ExecuteCommandBuffer(cmd);
-
-            ctx.ExecuteCommandBuffer(cmd);
-        }
-
-        void ApplyUI(ScriptableRenderContext ctx, Camera camera)
-        {
-            if (camera.cameraType != CameraType.Game)
-                return;
-
-            if (uiHandle != null)
-            {
-                var cmd = CommandBufferPool.Get("Apply UI Buffer");
-
-                uiBlit.SetTexture("_MainTex2", uiHandle);
-                cmd.Blit(Texture2D.whiteTexture, BuiltinRenderTextureType.CameraTarget, uiBlit);
-
-                ctx.ExecuteCommandBuffer(cmd);
+                camera.TryGetCullingParameters(out var cullingParameters);
+                cullingParameters.cullingOptions = CullingOptions.None;
+                cullingParameters.cullingMask = (uint)uiLayerMask.value;
+                cullingResults = ctx.Cull(ref cullingParameters);
             }
         }
+
+        // Disables one time culling when not in play mode to be able to correctly edit the UI
+        if (oneTimeCulling && !Application.isPlaying)
+            updateCulling = false;
+
+    }
+
+    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera)
+    {
+        using (new ProfilingScope(cmd, renderingSampler))
+        {
+            CoreUtils.SetRenderTarget(cmd, renderTexture, ClearFlag.All);
+
+            var drawSettings = new DrawingSettings
+            {
+                sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonTransparent | SortingCriteria.CanvasOrder | SortingCriteria.RendererPriority }
+            };
+            for (int i = 0; i < hdTransparentPassNames.Length; i++)
+                drawSettings.SetShaderPassName(i, hdTransparentPassNames[i]);
+
+            var filterSettings = new FilteringSettings(RenderQueueRange.all, uiLayerMask);
+
+            ctx.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            ctx.DrawRenderers(cullingResults, ref drawSettings, ref filterSettings);
+        }
+    }
+
+    void DoRenderUI(ScriptableRenderContext ctx, HDCamera hdCamera)
+    {
+        ScriptableRenderContext.EmitGeometryForCamera(hdCamera.camera);
+        ctx.SetupCameraProperties(hdCamera.camera, hdCamera.xr.enabled);
+
+        UpdateRenderTexture(hdCamera.camera);
+
+        var cmd = CommandBufferPool.Get();
+        using (new ProfilingScope(cmd, uiCameraStackingSampler))
+        {
+            CullUI(cmd, ctx, hdCamera.camera);
+            RenderUI(cmd, ctx, hdCamera.camera);
+        }
+        ctx.ExecuteCommandBuffer(cmd);
+        ctx.Submit();
     }
 }
