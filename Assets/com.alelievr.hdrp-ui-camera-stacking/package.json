@@ -1,0 +1,22 @@
+{
+  "name": "com.alelievr.hdrp-ui-camera-stacking",
+  "displayName": "HDRP UI Camera Stacking",
+  "version": "0.3.0",
+  "unity": "2021.1",
+  "description": "Adds support for camera stacking in HDRP ONLY FOR UI",
+  "keywords": [
+    "UI",
+    "HDRP"
+  ],
+  "category": "Unity",
+  "type": "tool",
+  "dependencies": {
+    "com.unity.render-pipelines.high-definition": "11.0.0"
+  },
+  "hideInEditor": false,
+  "author":
+  {
+    "name": "Antoine Lelièvre",
+    "url": "https://github.com/alelievr"
+  }
+}
