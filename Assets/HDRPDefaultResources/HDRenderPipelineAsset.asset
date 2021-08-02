@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  m_RenderPipelineResources: {fileID: 0}
+  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
   m_DefaultVolumeProfile: {fileID: 11400000, guid: f0c20f7400328d24aa655a62a5b558aa, type: 2}
   m_LensAttenuation: 0
@@ -84,7 +84,7 @@ MonoBehaviour:
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
     supportTransparentDepthPostpass: 1
-    colorBufferFormat: 74
+    colorBufferFormat: 48
     supportCustomPass: 1
     customBufferFormat: 12
     supportedLitShaderMode: 2
@@ -176,7 +176,7 @@ MonoBehaviour:
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48
-      bufferFormat: 74
+      bufferFormat: 48
     dynamicResolutionSettings:
       enabled: 0
       maxPercentage: 100

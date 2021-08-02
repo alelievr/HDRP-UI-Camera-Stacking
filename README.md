@@ -13,10 +13,11 @@ This implementation also provides all the benefits of standard camera stacking:
 
 ## Installation
 
-Unity version compatibility
+The UI Camera Stacking package supports the following versions:
 
 Unity Version | HDRP Version | Compatible
 --- | --- | ---
+2019.4.x | 7.x | ❌
 2020.1.x | 8.x | ❌
 2020.2.x and 2020.3.x | 10.x | ✔️
 2021.1.x | 11.x | ✔️
@@ -33,9 +34,8 @@ Name:     Open UPM
 URL:      https://package.openupm.com
 Scope(s): com.alelievr
 ```
-3. Then below the scoped registries, you need to enable `Preview Packages`.
-4. Next, open the `Package Manager` window, select `My Registries` in the top left corner and you should be able to see the **HDRP UI Camera Stacking** package.
-5. Click the `Install` button and you can start using the package :)
+3. Next, open the `Package Manager` window, select `My Registries` in the top left corner and you should be able to see the **HDRP UI Camera Stacking** package.
+4. Click the `Install` button and you can start using the package :)
 
 ![PackageManager](https://user-images.githubusercontent.com/6877923/127833767-8ffcaa0d-a655-4abd-820e-c08182eb51f8.png)
   
@@ -58,3 +58,25 @@ In this new UI Camera there is a component called **HD Camera UI**, this is the 
 The **Ui Layer Mask** parameter is the layer mask of your UI objects, by default it's set to **UI**. And the priority is used to define a draw order between the UI cameras, a high priority means rendered in front of the other cameras.
 
 In the UI Camera gameobject a canvas was also created and correctly configured with the "Screen Space - Camera" mode. You can add your UI in this canvas.
+
+## Performances
+
+In HDRP using more than one camera have a very high performance cost. While you can avoid most of the performance issue on the GPU side with correct culling settings and disabling almost every in the frame settings, you won't be able to escape the CPU cost.
+
+The scenes used for the performance test are available in the Benchmark folder of the project. For HDRP, the [Graphics Compositor](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/Compositor-Main.html) was used to perform the UI camera stacking. The UI camera had custom frame settings optimized to render GUI (transparent unlit objects).
+
+Setup | CPU Time (ms) | GPU Time (ms)
+--- | --- | --- | --- 
+HDRP camera stacking | 0.80 | 0.23
+Custom UI camera stacking | 0.05 | 0.19
+
+Without much surprise, we can see a big difference on CPU side, mostly because we're skipping all the work of a standard HDRP camera. On the GPU side things are pretty even except a slight overhead due to the compute shader work that can't be disabled in the frame settings. 
+
+## Limitations
+
+Rendering Lit objects is not supported. Currently the UI rendering happen before the rendering of the main camera, thus before any lighting structure is built so it's not possible to access the lighting data when rendering the UI for camera stacking.
+
+## Future Improvements
+
+- Fullscreen effect applied after rendering the UI
+- Custom compositing shader

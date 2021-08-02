@@ -14,7 +14,7 @@ using UnityEditor;
 public static class CameraStackingCompositing
 {
     public static ProfilingSampler compositingSampler;
-    public static HashSet<HDCameraUI> uiList = new HashSet<HDCameraUI>();
+    public static List<HDCameraUI> uiList = new List<HDCameraUI>();
     public static Dictionary<Camera, HDAdditionalCameraData> hdAdditionalCameraData = new Dictionary<Camera, HDAdditionalCameraData>();
     public static Material blitWithBlendingMaterial;
 
@@ -52,15 +52,16 @@ public static class CameraStackingCompositing
         if (hdData?.hasCustomRender == true)
             return;
 
-
         var cmd = CommandBufferPool.Get();
+        uiList.Sort((c0, c1) => c0.priority.CompareTo(c1.priority));
         using (new ProfilingScope(cmd, compositingSampler))
         {
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
-            foreach (var ui in uiList.OrderBy(e => e.priority))
+            foreach (var ui in uiList)
                 cmd.Blit(ui.renderTexture, BuiltinRenderTextureType.CameraTarget, blitWithBlendingMaterial);
         }
         ctx.ExecuteCommandBuffer(cmd);
         ctx.Submit();
+        CommandBufferPool.Release(cmd);
     }
 }

@@ -1,8 +1,8 @@
 {
   "name": "com.alelievr.hdrp-ui-camera-stacking",
   "displayName": "HDRP UI Camera Stacking",
-  "version": "0.0.0",
-  "unity": "2021.1",
+  "version": "1.0.0",
+  "unity": "2020.3",
   "description": "Adds support for camera stacking in HDRP ONLY FOR UI",
   "keywords": [
     "UI",
