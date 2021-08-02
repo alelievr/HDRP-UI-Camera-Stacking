@@ -66,7 +66,7 @@ In HDRP using more than one camera have a very high performance cost. While you 
 The scenes used for the performance test are available in the Benchmark folder of the project. For HDRP, the [Graphics Compositor](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/Compositor-Main.html) was used to perform the UI camera stacking. The UI camera had custom frame settings optimized to render GUI (transparent unlit objects).
 
 Setup | CPU Time (ms) | GPU Time (ms)
---- | --- | --- | --- 
+--- | --- | --- 
 HDRP camera stacking | 0.80 | 0.23
 Custom UI camera stacking | 0.05 | 0.19
 
