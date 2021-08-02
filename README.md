@@ -2,7 +2,7 @@
 
 The HDRP UI Camera Stacking package allows you to stack multiple camera rendering UI only at a fraction of the cost of a standard camera.
 
-This is achieved by taking advantage of the [customRender](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html#UnityEngine_Rendering_HighDefinition_HDAdditionalCameraData_customRender) feature to render only the GUI elements and nothing else, with the only downside to not be able to render Lit objects which is generally find for UI.
+This is achieved by taking advantage of the [customRender](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html#UnityEngine_Rendering_HighDefinition_HDAdditionalCameraData_customRender) feature to render only the GUI elements and nothing else, with the only downside to not be able to render Lit objects which are generally found for UI.
 
 https://user-images.githubusercontent.com/6877923/127684238-1f149a4f-1677-4428-b3f8-7ba51c6c93d6.mp4
 
@@ -28,9 +28,3 @@ In this new UI Camera there is a component called **HD Camera UI**, this is the 
 The **Ui Layer Mask** parameter is the layer mask of your UI objects, by default it's set to **UI**. And the priority is used to define a draw order between the UI cameras, a high priority means rendered in front of the other cameras.
 
 In the UI Camera gameobject a canvas was also created and correctly configured with the "Screen Space - Camera" mode. You can add your UI in this canvas.
-
-## Known issues
-
-### 3D Object / HDRP shaders rendering issues
-
-Currently rendering UI elements with HDRP shaders or 3D objects is not supported and will result in unexpected behaviors

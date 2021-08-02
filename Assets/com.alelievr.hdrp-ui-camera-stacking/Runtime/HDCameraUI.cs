@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using System.Collections.Generic;
-using System.Linq;
 
 /// <summary>
 /// When this component is added to a camera, it replaces the standard rendering by a single optimized pass to render the GUI in screen space.
@@ -164,12 +162,21 @@ public class HDCameraUI : MonoBehaviour
 
     void DoRenderUI(ScriptableRenderContext ctx, HDCamera hdCamera)
     {
-        ScriptableRenderContext.EmitGeometryForCamera(hdCamera.camera);
-        ctx.SetupCameraProperties(hdCamera.camera, hdCamera.xr.enabled);
+        var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+        if (hdrp == null)
+            return;
 
         UpdateRenderTexture(hdCamera.camera);
 
         var cmd = CommandBufferPool.Get();
+
+        // Setup render context for rendering GUI
+        ScriptableRenderContext.EmitGeometryForCamera(hdCamera.camera);
+        ctx.SetupCameraProperties(hdCamera.camera, hdCamera.xr.enabled);
+
+        // Setup HDRP camera properties to render HDRP shaders
+        hdrp.UpdateCameraCBuffer(cmd, hdCamera);
+
         using (new ProfilingScope(cmd, uiCameraStackingSampler))
         {
             CullUI(cmd, ctx, hdCamera.camera);
