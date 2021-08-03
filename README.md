@@ -72,6 +72,14 @@ Custom UI camera stacking | 0.05 | 0.19
 
 Without much surprise, we can see a big difference on CPU side, mostly because we're skipping all the work of a standard HDRP camera. On the GPU side things are pretty even except a slight overhead due to the compute shader work that can't be disabled in the frame settings. 
 
+<details><summary>System Information</summary>
+  
+- System: Windows 10, DirectX 11
+- CPU: i5-9600k 3.70GHz 6 cores
+- GPU: RTX 2080
+  
+</details>
+
 ## Limitations
 
 Rendering Lit objects is not supported. Currently the UI rendering happen before the rendering of the main camera, thus before any lighting structure is built so it's not possible to access the lighting data when rendering the UI for camera stacking.
