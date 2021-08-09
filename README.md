@@ -88,3 +88,4 @@ Rendering Lit objects is not supported. Currently the UI rendering happen before
 
 - Fullscreen effect applied after rendering the UI
 - Custom compositing shader
+- Render directly to the camera render texture or target buffer
