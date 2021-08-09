@@ -11,7 +11,7 @@
   "category": "Unity",
   "type": "tool",
   "dependencies": {
-    "com.unity.render-pipelines.high-definition": "7.0.0"
+    "com.unity.render-pipelines.high-definition": "10.1.0"
   },
   "hideInEditor": false,
   "author":
