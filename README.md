@@ -80,3 +80,4 @@ Rendering Lit objects is not supported. Currently the UI rendering happen before
 
 - Fullscreen effect applied after rendering the UI
 - Custom compositing shader
+- Add an injection point before post processes
