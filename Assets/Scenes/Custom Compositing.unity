@@ -248,7 +248,7 @@ MonoBehaviour:
   xrRendering: 1
   fullscreenPassthrough: 0
   allowDynamicResolution: 0
-  customRenderingSettings: 0
+  customRenderingSettings: 1
   invertFaceCulling: 0
   probeLayerMask:
     serializedVersion: 2
@@ -827,7 +827,7 @@ MonoBehaviour:
   compositingMaterialPass: 0
   graphicsFormat: 48
   renderInCameraBuffer: 0
-  showAdvancedSettings: 0
+  showAdvancedSettings: 1
   blitWithBlending: {fileID: 4800000, guid: 2f9f3f4f146daca4aa6c50c9507f4b3e, type: 3}
 --- !u!20 &961942582
 Camera:
