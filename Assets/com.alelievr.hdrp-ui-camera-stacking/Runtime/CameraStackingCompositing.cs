@@ -58,7 +58,25 @@ public static class CameraStackingCompositing
         {
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
             foreach (var ui in uiList)
-                cmd.Blit(ui.renderTexture, BuiltinRenderTextureType.CameraTarget, blitWithBlendingMaterial);
+            {
+                if (ui.IsActive())
+                {
+                    switch (ui.compositingMode)
+                    {
+                        default:
+                        case HDCameraUI.CompositingMode.Automatic:
+                            cmd.Blit(ui.renderTexture, BuiltinRenderTextureType.CameraTarget, blitWithBlendingMaterial);
+                            break;
+                        case HDCameraUI.CompositingMode.Custom:
+                            if (ui.compositingMaterial != null)
+                                cmd.Blit(ui.renderTexture, BuiltinRenderTextureType.CameraTarget, ui.compositingMaterial, ui.compositingMaterialPass);
+                            break;
+                        case HDCameraUI.CompositingMode.Manual:
+                            // The user manually composite the UI.
+                            break;
+                    }
+                }
+            }
         }
         ctx.ExecuteCommandBuffer(cmd);
         ctx.Submit();

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using System;
 
 /// <summary>
 /// When this component is added to a camera, it replaces the standard rendering by a single optimized pass to render the GUI in screen space.
@@ -10,6 +11,19 @@ using UnityEngine.Rendering.HighDefinition;
 [RequireComponent(typeof(Camera))]
 public class HDCameraUI : MonoBehaviour
 {
+    /// <summary>
+    /// Specifies the compositing mode to use when combining the UI render texture and the camera color.
+    /// </summary>
+    public enum CompositingMode
+    {
+        /// <summary>Automatically combines both UI and camera color after the rendering of the main camera.</summary>
+        Automatic,
+        /// <summary>Disables the automatic compositing so you have to manually composite the UI buffer with the camera color.</summary>
+        Manual,
+        /// <summary>Automatically combines both UI and camera color using a custom material (compositingMaterial field). The material must be compatible with the Blit() command.</summary>
+        Custom,
+    }
+
     /// <summary>
     /// Select which layer mask to use to render the UI.
     /// </summary>
@@ -23,23 +37,38 @@ public class HDCameraUI : MonoBehaviour
     public float priority = 0;
 
     /// <summary>
+    /// Specifies the compositing mode to use when combining the UI render texture and the camera color.
+    /// </summary>
+    public CompositingMode compositingMode;
+
+    /// <summary>
     /// Use this property to apply a post process shader effect on the UI. The shader must be compatible with Graphics.Blit().
     /// see https://github.com/h33p/Unity-Graphics-Demo/blob/master/Assets/Asset%20Store/PostProcessing/Resources/Shaders/Blit.shader
     /// </summary>
     [Tooltip("Apply a post process effect on the UI buffer. The shader must be compatible with Graphics.Blit().")]
-    public Material customPostEffect;
+    public Material compositingMaterial;
 
     /// <summary>
-    /// Internal render texture used to store the UI before compositing with the main camera.
+    /// Apply post processes to the UI. Use the camera volume layer mask to control which post process are applied.
     /// </summary>
+    public bool postProcess;
+
+    /// <summary>
+    /// The pass name of the compositing material to use.
+    /// </summary>
+    public int compositingMaterialPass;
+
     [HideInInspector]
-    public RenderTexture renderTexture;
+    RenderTexture internalRenderTexture;
 
     /// <summary>
-    /// Disables the culling typically done every frame while rendering the UI. This is an optimization and only works if your GUI elements are not dynamic.
+    /// The render texture used to render the UI. This field can reflect the camera target texture if not null.
     /// </summary>
-    [Tooltip("Disables the culling typically done every frame while rendering the UI. This is an optimization and only works if your GUI elements are not dynamic.")]
-    public bool oneTimeCulling;
+    public RenderTexture renderTexture
+    {
+        get => attachedCamera.targetTexture == null ? internalRenderTexture : attachedCamera.targetTexture;
+        set => attachedCamera.targetTexture = value;
+    }
 
     /// <summary>
     /// Specifies the graphics format to use when rendering the UI.
@@ -47,24 +76,40 @@ public class HDCameraUI : MonoBehaviour
     [Tooltip("Specifies the graphics format to use when rendering the UI.")]
     public GraphicsFormat graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-    [System.NonSerialized]
-    bool updateCulling = true;
+    /// <summary>
+    /// Copy the UI after rendering in the camera buffer. Useful if you need to use the target BuiltinRenderTextureType.CameraTarget in C#.
+    /// </summary>
+    public bool renderInCameraBuffer;
+
+    /// <summary>
+    /// Event triggered just before the rendering of the UI (after the culling)
+    /// </summary>
+    public event Action beforeUIRendering;
+
+    /// <summary>
+    /// Event triggered just after the rendering of the UI.
+    /// </summary>
+    public event Action afterUIRendering;
+
     CullingResults cullingResults;
     [SerializeField]
     internal bool showAdvancedSettings;
     [SerializeField]
     Shader blitWithBlending; // Force the serialization of the shader in the scene so it ends up in the build
 
+    internal Camera attachedCamera;
     HDAdditionalCameraData data;
     ShaderTagId[] hdTransparentPassNames;
     ProfilingSampler cullingSampler;
     ProfilingSampler renderingSampler;
     ProfilingSampler uiCameraStackingSampler;
+    ProfilingSampler copyToCameraTargetSampler;
 
     // Start is called before the first frame update
     void OnEnable()
     {
         data = GetComponent<HDAdditionalCameraData>();
+        attachedCamera = GetComponent<Camera>();
 
         if (data == null)
             return;
@@ -82,13 +127,14 @@ public class HDCameraUI : MonoBehaviour
 
         // TODO: add option to have depth buffer
         // TODO: Add VR support
-        renderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1);
-        renderTexture.dimension = TextureDimension.Tex2DArray;
-        renderTexture.volumeDepth = 1;
+        internalRenderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1);
+        internalRenderTexture.dimension = TextureDimension.Tex2DArray;
+        internalRenderTexture.volumeDepth = 1;
 
         cullingSampler = new ProfilingSampler("UI Culling");
         renderingSampler = new ProfilingSampler("UI Rendering");
         uiCameraStackingSampler = new ProfilingSampler("Render UI Camera Stacking");
+        copyToCameraTargetSampler = new ProfilingSampler("Copy To Camera Target");
 
         if (blitWithBlending == null)
             blitWithBlending = Shader.Find("Hidden/HDRP/UI_Compositing");
@@ -107,43 +153,36 @@ public class HDCameraUI : MonoBehaviour
 
     void UpdateRenderTexture(Camera camera)
     {
-        if (camera.pixelWidth != renderTexture.width
-            || camera.pixelHeight != renderTexture.height
-            || renderTexture.graphicsFormat != graphicsFormat)
+        if (camera.pixelWidth != internalRenderTexture.width
+            || camera.pixelHeight != internalRenderTexture.height
+            || internalRenderTexture.graphicsFormat != graphicsFormat)
         {
-            renderTexture.Release();
-            renderTexture.width = camera.pixelWidth;
-            renderTexture.height = camera.pixelHeight;
-            renderTexture.graphicsFormat = graphicsFormat;
-            renderTexture.Create();
+            internalRenderTexture.Release();
+            internalRenderTexture.width = camera.pixelWidth;
+            internalRenderTexture.height = camera.pixelHeight;
+            internalRenderTexture.graphicsFormat = graphicsFormat;
+            internalRenderTexture.Create();
         }
     }
 
     void CullUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera)
     {
-        // TODO: add an option to reuse the culling from last frame
-        if (updateCulling)
+        using (new ProfilingScope(cmd, cullingSampler))
         {
-            using (new ProfilingScope(cmd, cullingSampler))
-            {
-                camera.TryGetCullingParameters(out var cullingParameters);
-                cullingParameters.cullingOptions = CullingOptions.None;
-                cullingParameters.cullingMask = (uint)uiLayerMask.value;
-                cullingResults = ctx.Cull(ref cullingParameters);
-            }
+            camera.TryGetCullingParameters(out var cullingParameters);
+            cullingParameters.cullingOptions = CullingOptions.None;
+            cullingParameters.cullingMask = (uint)uiLayerMask.value;
+            cullingResults = ctx.Cull(ref cullingParameters);
         }
-
-        // Disables one time culling when not in play mode to be able to correctly edit the UI
-        if (oneTimeCulling && !Application.isPlaying)
-            updateCulling = false;
-
     }
 
-    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera)
+    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture targetTexture)
     {
+        beforeUIRendering?.Invoke();
+
         using (new ProfilingScope(cmd, renderingSampler))
         {
-            CoreUtils.SetRenderTarget(cmd, renderTexture, ClearFlag.All);
+            CoreUtils.SetRenderTarget(cmd, targetTexture, ClearFlag.All);
 
             var drawSettings = new DrawingSettings
             {
@@ -158,15 +197,22 @@ public class HDCameraUI : MonoBehaviour
             cmd.Clear();
             ctx.DrawRenderers(cullingResults, ref drawSettings, ref filterSettings);
         }
+
+        afterUIRendering?.Invoke();
     }
 
     void DoRenderUI(ScriptableRenderContext ctx, HDCamera hdCamera)
     {
+        if (!hdCamera.camera.enabled)
+            return;
+
         var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         if (hdrp == null)
             return;
 
-        UpdateRenderTexture(hdCamera.camera);
+        // Update the internal render texture only if we use it
+        if (hdCamera.camera.targetTexture == null)
+            UpdateRenderTexture(hdCamera.camera);
 
         var cmd = CommandBufferPool.Get();
 
@@ -180,9 +226,24 @@ public class HDCameraUI : MonoBehaviour
         using (new ProfilingScope(cmd, uiCameraStackingSampler))
         {
             CullUI(cmd, ctx, hdCamera.camera);
-            RenderUI(cmd, ctx, hdCamera.camera);
+            RenderUI(cmd, ctx, hdCamera.camera, renderTexture);
+
+            if (postProcess)
+            {
+                // TODO:
+                // using (new ProfilingScope())
+                hdrp.ApplyPostProcessOnRenderTexture(cmd, ctx, hdCamera, cullingResults, renderTexture);
+            }
+
+            if (renderInCameraBuffer && hdCamera.camera.targetTexture == null)
+            {
+                using (new ProfilingScope(cmd, copyToCameraTargetSampler))
+                    cmd.Blit(renderTexture, BuiltinRenderTextureType.CameraTarget, 0, 0);
+            }
         }
         ctx.ExecuteCommandBuffer(cmd);
         ctx.Submit();
     }
+
+    internal bool IsActive() => isActiveAndEnabled && attachedCamera.isActiveAndEnabled;
 }
