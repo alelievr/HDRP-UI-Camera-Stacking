@@ -2,7 +2,7 @@
 
 The HDRP UI Camera Stacking package allows you to stack multiple camera rendering UI only at a fraction of the cost of a standard camera.
 
-This is achieved by taking advantage of the [customRender](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html#UnityEngine_Rendering_HighDefinition_HDAdditionalCameraData_customRender) feature to render only the GUI elements and nothing else, with the only downside to not be able to render Lit objects which are generally found for UI.
+This is achieved by taking advantage of the [customRender](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/api/UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.html#UnityEngine_Rendering_HighDefinition_HDAdditionalCameraData_customRender) feature to render only the GUI elements and nothing else, with the only downside to not be able to render Lit objects which are generally not found for UI.
 
 https://user-images.githubusercontent.com/6877923/127684238-1f149a4f-1677-4428-b3f8-7ba51c6c93d6.mp4
 
@@ -72,6 +72,14 @@ Custom UI camera stacking | 0.05 | 0.19
 
 Without much surprise, we can see a big difference on CPU side, mostly because we're skipping all the work of a standard HDRP camera. On the GPU side things are pretty even except a slight overhead due to the compute shader work that can't be disabled in the frame settings. 
 
+<details><summary>System Information</summary>
+  
+- System: Windows 10, DirectX 11
+- CPU: i5-9600k 3.70GHz 6 cores
+- GPU: RTX 2080
+  
+</details>
+
 ## Limitations
 
 Rendering Lit objects is not supported. Currently the UI rendering happen before the rendering of the main camera, thus before any lighting structure is built so it's not possible to access the lighting data when rendering the UI for camera stacking.
@@ -81,3 +89,4 @@ Rendering Lit objects is not supported. Currently the UI rendering happen before
 - Fullscreen effect applied after rendering the UI
 - Custom compositing shader
 - Add an injection point before post processes
+- Render directly to the camera render texture or target buffer
