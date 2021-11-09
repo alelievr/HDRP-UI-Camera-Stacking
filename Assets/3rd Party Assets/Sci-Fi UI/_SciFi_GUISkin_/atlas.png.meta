@@ -122,10 +122,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -164,6 +166,7 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 1
+  swizzle: 50462976
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -862,9 +865,41 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      bar_green: 21300042
+      background_bar1: 21300060
+      progress_bar1: 21300008
+      window1: 21300002
+      progress_bar: 21300032
+      bar_blue: 21300040
+      arrow_right: 21300038
+      arrow_left1: 21300064
+      long_arrow_right: 21300026
+      back_arrow: 21300030
+      pause: 21300018
+      progress_bar_background: 21300010
+      bar_blue1: 21300052
+      button1: 21300014
+      bullets: 21300022
+      button_pushed: 21300016
+      progress_bar_background1: 21300028
+      rocket: 21300020
+      bar_green1: 21300058
+      plus: 21300012
+      jotstick_back: 21300004
+      button_active: 21300024
+      arrow_left: 21300036
+      background_bar: 21300050
+      bar_purple1: 21300062
+      bar_red: 21300046
+      long_arrow_left: 21300034
+      window: 21300000
+      joystikc: 21300006
+      arrow_right1: 21300066
+      bar_red1: 21300054
+      bar_purple: 21300044
   spritePackingTag: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

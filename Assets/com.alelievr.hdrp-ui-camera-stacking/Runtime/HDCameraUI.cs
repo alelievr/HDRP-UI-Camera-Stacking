@@ -51,7 +51,7 @@ public class HDCameraUI : MonoBehaviour
     /// <summary>
     /// Apply post processes to the UI. Use the camera volume layer mask to control which post process are applied.
     /// </summary>
-    public bool postProcess;
+    // public bool postProcess;
 
     /// <summary>
     /// The pass name of the compositing material to use.
@@ -130,6 +130,7 @@ public class HDCameraUI : MonoBehaviour
         internalRenderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1);
         internalRenderTexture.dimension = TextureDimension.Tex2DArray;
         internalRenderTexture.volumeDepth = 1;
+        internalRenderTexture.name = "HDCameraUI Output Target";
 
         cullingSampler = new ProfilingSampler("UI Culling");
         renderingSampler = new ProfilingSampler("UI Rendering");
@@ -228,12 +229,10 @@ public class HDCameraUI : MonoBehaviour
             CullUI(cmd, ctx, hdCamera.camera);
             RenderUI(cmd, ctx, hdCamera.camera, renderTexture);
 
-            if (postProcess)
-            {
-                // TODO:
-                // using (new ProfilingScope())
-                hdrp.ApplyPostProcessOnRenderTexture(cmd, ctx, hdCamera, cullingResults, renderTexture);
-            }
+            // if (postProcess)
+            // {
+            //     // TODO:
+            // }
 
             if (renderInCameraBuffer && hdCamera.camera.targetTexture == null)
             {

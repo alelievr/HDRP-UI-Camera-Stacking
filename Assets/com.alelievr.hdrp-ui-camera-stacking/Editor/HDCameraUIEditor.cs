@@ -17,7 +17,6 @@ public class HDCameraUIEditor : Editor
     SerializedProperty compositingMode;
     SerializedProperty compositingMaterialPass;
     SerializedProperty renderInCameraBuffer;
-    SerializedProperty postProcess;
     HDCameraUI cameraUI;
 
     Editor materialEditor;
@@ -58,7 +57,6 @@ public class HDCameraUIEditor : Editor
         compositingMode = serializedObject.FindProperty(nameof(cameraUI.compositingMode));
         compositingMaterialPass = serializedObject.FindProperty(nameof(cameraUI.compositingMaterialPass));
         renderInCameraBuffer = serializedObject.FindProperty(nameof(cameraUI.renderInCameraBuffer));
-        postProcess = serializedObject.FindProperty(nameof(cameraUI.postProcess));
     }
 
     void OnDisable()
@@ -109,8 +107,6 @@ public class HDCameraUIEditor : Editor
                 }
             }
         }
-
-        EditorGUILayout.PropertyField(postProcess);
 
         cameraUI.showAdvancedSettings = EditorGUILayout.Foldout(cameraUI.showAdvancedSettings, "Advanced Settings");
 
