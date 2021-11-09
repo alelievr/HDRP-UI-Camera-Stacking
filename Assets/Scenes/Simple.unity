@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2153.3594, g: 2257.6582, b: 3296.0742, a: 1}
+  m_IndirectSpecularColor: {r: 2156.874, g: 2260.8691, b: 3298.754, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -123,6 +123,82 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &19296380
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 19296381}
+  - component: {fileID: 19296383}
+  - component: {fileID: 19296382}
+  m_Layer: 5
+  m_Name: Panel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &19296381
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 19296380}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1812010142}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -229.38, y: -229.38}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &19296382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 19296380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &19296383
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 19296380}
+  m_CullTransparentMesh: 1
 --- !u!1 &157207112
 GameObject:
   m_ObjectHideFlags: 0
@@ -213,6 +289,7 @@ Transform:
   m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -328,7 +405,6 @@ MonoBehaviour:
   useOldInspector: 0
   useVolumetric: 1
   featuresFoldout: 1
-  showAdditionalSettings: 0
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
@@ -369,7 +445,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isGlobal: 1
+  m_IsGlobal: 1
   priority: 0
   blendDistance: 0
   weight: 1
@@ -384,6 +460,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -480,6 +557,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 20, y: 1, z: 20}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -513,7 +591,9 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
-  m_Children: []
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 19296381}
   m_Father: {fileID: 1849209051}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -580,6 +660,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -663,6 +744,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 3.46, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1849209051}
   m_Father: {fileID: 0}
@@ -697,10 +779,12 @@ MonoBehaviour:
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
+  taaBaseBlendFactor: 0.875
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
     m_Aperture: 16
+    m_FocusDistance: 10
     m_BladeCount: 5
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -715,7 +799,14 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   hasPersistentHistory: 0
+  allowDeepLearningSuperSampling: 1
+  deepLearningSuperSamplingUseCustomQualitySettings: 0
+  deepLearningSuperSamplingQuality: 0
+  deepLearningSuperSamplingUseCustomAttributes: 0
+  deepLearningSuperSamplingUseOptimalSettings: 1
+  deepLearningSuperSamplingSharpening: 0
   exposureTarget: {fileID: 0}
+  materialMipBias: 0
   m_RenderingPathCustomFrameSettings:
     bitDatas:
       data1: 72198262773251917
@@ -729,13 +820,14 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
     mask:
       data1: 0
       data2: 0
   defaultFrameSettings: 0
-  m_Version: 7
+  m_Version: 8
   m_ObsoleteRenderingPath: 0
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -811,6 +903,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1812010142}
   m_Father: {fileID: 1823688467}
@@ -888,10 +981,12 @@ MonoBehaviour:
   taaAntiFlicker: 0.5
   taaMotionVectorRejection: 0
   taaAntiHistoryRinging: 0
+  taaBaseBlendFactor: 0.875
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
     m_Aperture: 16
+    m_FocusDistance: 10
     m_BladeCount: 5
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -906,7 +1001,14 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   hasPersistentHistory: 0
+  allowDeepLearningSuperSampling: 1
+  deepLearningSuperSamplingUseCustomQualitySettings: 0
+  deepLearningSuperSamplingQuality: 0
+  deepLearningSuperSamplingUseCustomAttributes: 0
+  deepLearningSuperSamplingUseOptimalSettings: 1
+  deepLearningSuperSamplingSharpening: 0
   exposureTarget: {fileID: 0}
+  materialMipBias: 0
   m_RenderingPathCustomFrameSettings:
     bitDatas:
       data1: 72198262773251917
@@ -920,13 +1022,14 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    msaaMode: 9
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
     mask:
       data1: 0
       data2: 0
   defaultFrameSettings: 0
-  m_Version: 7
+  m_Version: 8
   m_ObsoleteRenderingPath: 0
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -989,12 +1092,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 32
   priority: 0
-  customPostEffect: {fileID: 0}
-  renderTexture: {fileID: 0}
-  oneTimeCulling: 0
+  compositingMode: 0
+  compositingMaterial: {fileID: 0}
+  compositingMaterialPass: 0
   graphicsFormat: 48
+  renderInCameraBuffer: 0
   showAdvancedSettings: 0
-  blitWithBlending: {fileID: 0}
+  blitWithBlending: {fileID: 4800000, guid: 2f9f3f4f146daca4aa6c50c9507f4b3e, type: 3}
 --- !u!1 &2013410473
 GameObject:
   m_ObjectHideFlags: 1
@@ -1026,6 +1130,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: 67f8a833a25e2d14a801915757453753, type: 2}
   m_StaticLightingSkyUniqueID: 4
+  m_StaticLightingCloudsUniqueID: 0
+  m_StaticLightingVolumetricClouds: 0
 --- !u!4 &2013410475
 Transform:
   m_ObjectHideFlags: 1
@@ -1036,6 +1142,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3

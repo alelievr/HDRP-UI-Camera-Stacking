@@ -22,6 +22,7 @@ Unity Version | HDRP Version | Compatible
 2020.2.x and 2020.3.x | 10.x | ✔️
 2021.1.x | 11.x | ✔️
 2021.2.x | 12.x | ✔️
+2022.1.x | 13.x | ✔️
 
 <details><summary>Instructions</summary>
 
@@ -53,11 +54,17 @@ First, create a UI Camera gameobject with the menu **UI > Camera (HDRP)**
 
 In this new UI Camera there is a component called **HD Camera UI**, this is the component that will do the rendering of the UI. It's important to correctly configure this component because the camera depth and culling mask are ignored when this component is added.
 
-![image](https://user-images.githubusercontent.com/6877923/127683260-89a0060a-02d5-4612-ac7c-94f95e6f1879.png)
-
-The **Ui Layer Mask** parameter is the layer mask of your UI objects, by default it's set to **UI**. And the priority is used to define a draw order between the UI cameras, a high priority means rendered in front of the other cameras.
-
 In the UI Camera gameobject a canvas was also created and correctly configured with the "Screen Space - Camera" mode. You can add your UI in this canvas.
+
+![image](https://user-images.githubusercontent.com/6877923/140966141-11cc8fb1-01ca-4151-8b92-ac0054d45128.png)
+
+Property | Description
+--- | ---
+**Ui Layer Mask** | Layer mask of your UI objects, by default it's set to **UI**.
+**Priority** | Used to define a draw order between the UI cameras, a high priority means rendered in front of the other cameras.
+**Compositing Mode** | Select how you want the compositing to happen. By default the Automatic will blend the UI render texture with the camera color after the camera rendering. The Custom mode allows you to replace the compositing material by your own fullscreen shader. The Manual mode disables the compositing and you have to do your own one with the **renderTexture** field in **HDCameraUI**.
+**Graphics Format** | Format of the color buffer used to render the UI, the default is 16 bit RGBA to avoid banding and keep the alpha channel.
+**Render In Camera Buffer** | If true, the UI will also be rendered in the attached camera color buffer.
 
 ## Performances
 
@@ -87,6 +94,5 @@ Rendering Lit objects is not supported. Currently the UI rendering happen before
 ## Future Improvements
 
 - Fullscreen effect applied after rendering the UI
-- Custom compositing shader
 - Add an injection point before post processes
-- Render directly to the camera render texture or target buffer
+- Support post processing volumes for UI Cameras.
