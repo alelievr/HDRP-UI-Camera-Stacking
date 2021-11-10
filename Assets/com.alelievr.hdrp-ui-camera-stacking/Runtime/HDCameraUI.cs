@@ -211,6 +211,9 @@ public class HDCameraUI : MonoBehaviour
         if (hdrp == null)
             return;
 
+        if (hdCamera.xr.enabled)
+            Debug.LogError("XR is not supported by HDCameraUI the component.");
+
         // Update the internal render texture only if we use it
         if (hdCamera.camera.targetTexture == null)
             UpdateRenderTexture(hdCamera.camera);
