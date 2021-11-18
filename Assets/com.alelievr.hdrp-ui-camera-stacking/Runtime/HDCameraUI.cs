@@ -125,11 +125,11 @@ public class HDCameraUI : MonoBehaviour
             HDShaderPassNames.s_SRPDefaultUnlitName
         };
 
-        // TODO: add option to have depth buffer
         // TODO: Add VR support
         internalRenderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1);
         internalRenderTexture.dimension = TextureDimension.Tex2DArray;
         internalRenderTexture.volumeDepth = 1;
+        internalRenderTexture.depthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
         internalRenderTexture.name = "HDCameraUI Output Target";
 
         cullingSampler = new ProfilingSampler("UI Culling");
@@ -183,7 +183,7 @@ public class HDCameraUI : MonoBehaviour
 
         using (new ProfilingScope(cmd, renderingSampler))
         {
-            CoreUtils.SetRenderTarget(cmd, targetTexture, ClearFlag.All);
+            CoreUtils.SetRenderTarget(cmd, targetTexture.colorBuffer, targetTexture.depthBuffer, ClearFlag.All);
 
             var drawSettings = new DrawingSettings
             {
