@@ -66,7 +66,7 @@ public static class CameraStackingCompositing
                         default:
                         case HDCameraUI.CompositingMode.Automatic:
                             if (camera.targetTexture != null)
-                                cmd.Blit(ui.renderTexture, Display.activeEditorGameViewTarget, blitWithBlendingMaterial);
+                                cmd.Blit(ui.renderTexture, camera.targetTexture, blitWithBlendingMaterial);
                             else
                                 cmd.Blit(ui.renderTexture, BuiltinRenderTextureType.CameraTarget, blitWithBlendingMaterial);
                             break;
@@ -74,7 +74,7 @@ public static class CameraStackingCompositing
                             if (ui.compositingMaterial != null)
                             {
                                 if (camera.targetTexture != null)
-                                    cmd.Blit(ui.renderTexture, Display.activeEditorGameViewTarget, ui.compositingMaterial, ui.compositingMaterialPass);
+                                    cmd.Blit(ui.renderTexture, camera.targetTexture, ui.compositingMaterial, ui.compositingMaterialPass);
                                 else
                                     cmd.Blit(ui.renderTexture, BuiltinRenderTextureType.CameraTarget, ui.compositingMaterial, ui.compositingMaterialPass);
                             }
