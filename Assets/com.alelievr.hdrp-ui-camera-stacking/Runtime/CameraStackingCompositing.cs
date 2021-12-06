@@ -61,6 +61,24 @@ public static class CameraStackingCompositing
             {
                 if (ui.IsActive())
                 {
+                    // Check if the target camera in HDCameraUI matches the current camera
+                    switch (ui.targetCamera)
+                    {
+                        case HDCameraUI.TargetCamera.Main:
+                            if (camera != Camera.main)
+                                continue;
+                            break;
+                        case HDCameraUI.TargetCamera.Layer:
+                            if (((1 << camera.gameObject.layer) & ui.targetCameraLayer) == 0)
+                                continue;
+                            break;
+                        case HDCameraUI.TargetCamera.Specific:
+                            if (camera != ui.targetCameraObject)
+                                continue;
+                            break;
+                    }
+
+                    // Do the UI compositing
                     switch (ui.compositingMode)
                     {
                         default:

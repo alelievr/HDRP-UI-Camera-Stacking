@@ -25,6 +25,21 @@ public class HDCameraUI : MonoBehaviour
     }
 
     /// <summary>
+    /// Specifies on which camera the UI needs to be rendered.
+    /// </summary>
+    public enum TargetCamera
+    {
+        /// <summary>Only render the UI on the camera with the tag "Main Camera".</summary>
+        Main,
+        /// <summary>Render the UI on all cameras.</summary>
+        All,
+        /// <summary>Render the UI on all cameras in a specific layer.</summary>
+        Layer,
+        /// <summary>Only render the UI on a specific camera.</summary>
+        Specific,
+    }
+
+    /// <summary>
     /// Select which layer mask to use to render the UI.
     /// </summary>
     [Tooltip("Select which layer mask to use to render the UI.")]
@@ -80,6 +95,21 @@ public class HDCameraUI : MonoBehaviour
     /// Copy the UI after rendering in the camera buffer. Useful if you need to use the target BuiltinRenderTextureType.CameraTarget in C#.
     /// </summary>
     public bool renderInCameraBuffer;
+
+    /// <summary>
+    /// Specifies on which camera the UI needs to be rendered. The default is Main Camera only.
+    /// </summary>
+    public TargetCamera targetCamera = TargetCamera.Main;
+
+    /// <summary>
+    /// Specifies which layer target camera(s) are using. All cameras using this layer will have the same UI applied.
+    /// </summary>
+    public LayerMask targetCameraLayer = 1;
+
+    /// <summary>
+    /// Specifies the camera where the UI should be rendered.
+    /// </summary>
+    public Camera targetCameraObject;
 
     /// <summary>
     /// Event triggered just before the rendering of the UI (after the culling)

@@ -14,6 +14,9 @@ public class HDCameraUIEditor : Editor
     SerializedProperty priority;
     SerializedProperty compositingMaterial;
     SerializedProperty graphicsFormat;
+    SerializedProperty targetCamera;
+    SerializedProperty targetCameraLayer;
+    SerializedProperty targetCameraObject;
     SerializedProperty compositingMode;
     SerializedProperty compositingMaterialPass;
     SerializedProperty renderInCameraBuffer;
@@ -57,6 +60,9 @@ public class HDCameraUIEditor : Editor
         compositingMode = serializedObject.FindProperty(nameof(cameraUI.compositingMode));
         compositingMaterialPass = serializedObject.FindProperty(nameof(cameraUI.compositingMaterialPass));
         renderInCameraBuffer = serializedObject.FindProperty(nameof(cameraUI.renderInCameraBuffer));
+        targetCamera = serializedObject.FindProperty(nameof(cameraUI.targetCamera));
+        targetCameraLayer = serializedObject.FindProperty(nameof(cameraUI.targetCameraLayer));
+        targetCameraObject = serializedObject.FindProperty(nameof(cameraUI.targetCameraObject));
     }
 
     void OnDisable()
@@ -74,6 +80,8 @@ public class HDCameraUIEditor : Editor
 
         EditorGUILayout.PropertyField(uiLayerMask);
         EditorGUILayout.PropertyField(priority);
+
+        // Show Mode
         EditorGUILayout.PropertyField(compositingMode);
 
         var mode = (HDCameraUI.CompositingMode)compositingMode.intValue;
@@ -108,6 +116,18 @@ public class HDCameraUIEditor : Editor
             }
         }
 
+        // Target Camera
+        EditorGUILayout.PropertyField(targetCamera);
+        var targetCameraMode = (HDCameraUI.TargetCamera)targetCamera.intValue;
+        using (new EditorGUI.IndentLevelScope())
+        {
+            if (targetCameraMode == HDCameraUI.TargetCamera.Layer)
+                EditorGUILayout.PropertyField(targetCameraLayer);
+            if (targetCameraMode == HDCameraUI.TargetCamera.Specific)
+                EditorGUILayout.PropertyField(targetCameraObject);
+        }
+
+        // Advanced settings
         cameraUI.showAdvancedSettings = EditorGUILayout.Foldout(cameraUI.showAdvancedSettings, "Advanced Settings");
 
         if (cameraUI.showAdvancedSettings)
