@@ -63,6 +63,7 @@ Property | Description
 **Ui Layer Mask** | Layer mask of your UI objects, by default it's set to **UI**.
 **Priority** | Used to define a draw order between the UI cameras, a high priority means rendered in front of the other cameras.
 **Compositing Mode** | Select how you want the compositing to happen. By default the Automatic will blend the UI render texture with the camera color after the camera rendering. The Custom mode allows you to replace the compositing material by your own fullscreen shader. The Manual mode disables the compositing and you have to do your own one with the **renderTexture** field in **HDCameraUI**.
+**Target Camera** | Specifies which camera will receive the UI. By default the Main value only adds the UI to the [main camera](https://docs.unity3d.com/ScriptReference/Camera-main.html). The All value outputs the UI to every camera in the scene. The Layer value allows you to filter cameras by layer. The Specific mode allows you to only output the UI to a specific camera.
 **Graphics Format** | Format of the color buffer used to render the UI, the default is 16 bit RGBA to avoid banding and keep the alpha channel.
 **Render In Camera Buffer** | If true, the UI will also be rendered in the attached camera color buffer.
 
