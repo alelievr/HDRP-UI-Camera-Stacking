@@ -77,7 +77,7 @@ Setup | CPU Time (ms) | GPU Time (ms)
 HDRP camera stacking | 0.80 | 0.23
 Custom UI camera stacking | 0.05 | 0.19
 
-Without much surprise, we can see a big difference on CPU side, mostly because we're skipping all the work of a standard HDRP camera. On the GPU side things are pretty even except a slight overhead due to the compute shader work that can't be disabled in the frame settings. 
+Without much surprise, we can see a big difference on CPU side, mostly because we're skipping all the work of a standard HDRP camera. On the GPU side things are pretty even  though the camera is still a bit slower because of the overhead of compute shader and fullscreen passes that can't be disabled in the frame settings. 
 
 <details><summary>System Information</summary>
   
