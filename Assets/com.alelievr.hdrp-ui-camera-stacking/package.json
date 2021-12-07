@@ -1,7 +1,7 @@
 {
   "name": "com.alelievr.hdrp-ui-camera-stacking",
   "displayName": "HDRP UI Camera Stacking",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "unity": "2020.2",
   "description": "This package includes a component that overrides the behavior of a camera in HDRP and greatly improves the performances to render the screen-space UI. It also prevents issues like motion vectors and depth clipping on the UI elements.",
   "keywords": [
