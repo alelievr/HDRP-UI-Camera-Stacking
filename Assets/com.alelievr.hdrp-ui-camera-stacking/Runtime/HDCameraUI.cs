@@ -159,7 +159,7 @@ public class HDCameraUI : MonoBehaviour
         internalRenderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1);
         internalRenderTexture.dimension = TextureDimension.Tex2DArray;
         internalRenderTexture.volumeDepth = 1;
-        internalRenderTexture.depthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
+        internalRenderTexture.depth = 24;
         internalRenderTexture.name = "HDCameraUI Output Target";
 
         cullingSampler = new ProfilingSampler("UI Culling");
