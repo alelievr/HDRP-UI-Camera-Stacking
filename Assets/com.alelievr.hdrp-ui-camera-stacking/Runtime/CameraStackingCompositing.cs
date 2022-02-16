@@ -16,7 +16,8 @@ public static class CameraStackingCompositing
     public static ProfilingSampler compositingSampler;
     public static List<HDCameraUI> uiList = new List<HDCameraUI>();
     public static Dictionary<Camera, HDAdditionalCameraData> hdAdditionalCameraData = new Dictionary<Camera, HDAdditionalCameraData>();
-    public static Material blitWithBlendingMaterial;
+    public static Material compositingMaterial;
+    static MaterialPropertyBlock uiProperties = new MaterialPropertyBlock();
 
     static CameraStackingCompositing()
     {
@@ -30,8 +31,8 @@ public static class CameraStackingCompositing
         RenderPipelineManager.endCameraRendering += EndCameraRendering;
         compositingSampler = new ProfilingSampler("Composite UI Camera Stacking");
 
-        if (blitWithBlendingMaterial == null)
-            blitWithBlendingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/HDRP/UI_Compositing"));
+        if (compositingMaterial == null)
+            compositingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/HDRP/UI_Compositing"));
     }
 
     static void EndCameraRendering(ScriptableRenderContext ctx, Camera camera)
@@ -78,23 +79,32 @@ public static class CameraStackingCompositing
                             break;
                     }
 
+                    uiProperties.SetTexture("_MainTex", ui.renderTexture);
+
+                    if (camera.targetTexture != null)
+                        cmd.SetRenderTarget(camera.targetTexture);
+                    else
+                        cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+
+                    cmd.SetViewport(camera.pixelRect);
+
                     // Do the UI compositing
                     switch (ui.compositingMode)
                     {
                         default:
                         case HDCameraUI.CompositingMode.Automatic:
                             if (camera.targetTexture != null)
-                                cmd.Blit(ui.renderTexture, camera.targetTexture, blitWithBlendingMaterial);
+                                cmd.DrawProcedural(Matrix4x4.identity, compositingMaterial, 0, MeshTopology.Triangles, 3, 1, uiProperties);
                             else
-                                cmd.Blit(ui.renderTexture, BuiltinRenderTextureType.CameraTarget, blitWithBlendingMaterial);
+                                cmd.DrawProcedural(Matrix4x4.identity, compositingMaterial, 0, MeshTopology.Triangles, 3, 1, uiProperties);
                             break;
                         case HDCameraUI.CompositingMode.Custom:
                             if (ui.compositingMaterial != null)
                             {
                                 if (camera.targetTexture != null)
-                                    cmd.Blit(ui.renderTexture, camera.targetTexture, ui.compositingMaterial, ui.compositingMaterialPass);
+                                    cmd.DrawProcedural(Matrix4x4.identity, ui.compositingMaterial, ui.compositingMaterialPass, MeshTopology.Triangles, 3, 1, uiProperties);
                                 else
-                                    cmd.Blit(ui.renderTexture, BuiltinRenderTextureType.CameraTarget, ui.compositingMaterial, ui.compositingMaterialPass);
+                                    cmd.DrawProcedural(Matrix4x4.identity, ui.compositingMaterial, ui.compositingMaterialPass, MeshTopology.Triangles, 3, 1, uiProperties);
                             }
                             break;
                         case HDCameraUI.CompositingMode.Manual:

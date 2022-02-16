@@ -189,8 +189,8 @@ public class HDCameraUI : MonoBehaviour
             || internalRenderTexture.graphicsFormat != graphicsFormat)
         {
             internalRenderTexture.Release();
-            internalRenderTexture.width = camera.pixelWidth;
-            internalRenderTexture.height = camera.pixelHeight;
+            internalRenderTexture.width = Mathf.Max(4, camera.pixelWidth);
+            internalRenderTexture.height = Mathf.Max(4, camera.pixelHeight);
             internalRenderTexture.graphicsFormat = graphicsFormat;
             internalRenderTexture.Create();
         }
@@ -261,11 +261,6 @@ public class HDCameraUI : MonoBehaviour
         {
             CullUI(cmd, ctx, hdCamera.camera);
             RenderUI(cmd, ctx, hdCamera.camera, renderTexture);
-
-            // if (postProcess)
-            // {
-            //     // TODO:
-            // }
 
             if (renderInCameraBuffer && hdCamera.camera.targetTexture == null)
             {
