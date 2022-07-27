@@ -196,15 +196,22 @@ public class HDCameraUI : MonoBehaviour
         }
     }
 
-    void CullUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera)
+    bool CullUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera)
     {
+        bool cullingOk = false;
+
         using (new ProfilingScope(cmd, cullingSampler))
         {
-            camera.TryGetCullingParameters(out var cullingParameters);
-            cullingParameters.cullingOptions = CullingOptions.None;
-            cullingParameters.cullingMask = (uint)uiLayerMask.value;
-            cullingResults = ctx.Cull(ref cullingParameters);
+            if (camera.TryGetCullingParameters(out var cullingParameters))
+            {
+                cullingParameters.cullingOptions = CullingOptions.None;
+                cullingParameters.cullingMask = (uint)uiLayerMask.value;
+                cullingResults = ctx.Cull(ref cullingParameters);
+                cullingOk = true;
+            }
         }
+
+        return cullingOk;
     }
 
     void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture targetTexture)
@@ -251,7 +258,6 @@ public class HDCameraUI : MonoBehaviour
         var cmd = CommandBufferPool.Get();
 
         // Setup render context for rendering GUI
-        ScriptableRenderContext.EmitGeometryForCamera(hdCamera.camera);
         ctx.SetupCameraProperties(hdCamera.camera, hdCamera.xr.enabled);
 
         // Setup HDRP camera properties to render HDRP shaders
@@ -259,13 +265,15 @@ public class HDCameraUI : MonoBehaviour
 
         using (new ProfilingScope(cmd, uiCameraStackingSampler))
         {
-            CullUI(cmd, ctx, hdCamera.camera);
-            RenderUI(cmd, ctx, hdCamera.camera, renderTexture);
-
-            if (renderInCameraBuffer && hdCamera.camera.targetTexture == null)
+            if (CullUI(cmd, ctx, hdCamera.camera))
             {
-                using (new ProfilingScope(cmd, copyToCameraTargetSampler))
-                    cmd.Blit(renderTexture, BuiltinRenderTextureType.CameraTarget, 0, 0);
+                RenderUI(cmd, ctx, hdCamera.camera, renderTexture);
+
+                if (renderInCameraBuffer && hdCamera.camera.targetTexture == null)
+                {
+                    using (new ProfilingScope(cmd, copyToCameraTargetSampler))
+                        cmd.Blit(renderTexture, BuiltinRenderTextureType.CameraTarget, 0, 0);
+                }
             }
         }
         ctx.ExecuteCommandBuffer(cmd);
