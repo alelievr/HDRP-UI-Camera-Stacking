@@ -20,6 +20,7 @@ public class HDCameraUIEditor : Editor
     SerializedProperty compositingMode;
     SerializedProperty compositingMaterialPass;
     SerializedProperty renderInCameraBuffer;
+    SerializedProperty skipCameraColorInit;
     HDCameraUI cameraUI;
 
     Editor materialEditor;
@@ -63,6 +64,7 @@ public class HDCameraUIEditor : Editor
         targetCamera = serializedObject.FindProperty(nameof(cameraUI.targetCamera));
         targetCameraLayer = serializedObject.FindProperty(nameof(cameraUI.targetCameraLayer));
         targetCameraObject = serializedObject.FindProperty(nameof(cameraUI.targetCameraObject));
+        skipCameraColorInit = serializedObject.FindProperty(nameof(skipCameraColorInit));
     }
 
     void OnDisable()
@@ -137,6 +139,7 @@ public class HDCameraUIEditor : Editor
                 EditorGUILayout.PropertyField(graphicsFormat);
                 if (cameraUI.attachedCamera.targetTexture == null)
                     EditorGUILayout.PropertyField(renderInCameraBuffer);
+                EditorGUILayout.PropertyField(skipCameraColorInit);
             }
         }
 

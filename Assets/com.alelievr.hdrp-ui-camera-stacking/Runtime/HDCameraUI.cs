@@ -54,6 +54,7 @@ public class HDCameraUI : MonoBehaviour
     /// <summary>
     /// Specifies the compositing mode to use when combining the UI render texture and the camera color.
     /// </summary>
+    [Tooltip("Select how the UI will be composited. Custom requires a material with a fullscreen shader. Manual let's you do the compositing in C# manually using the after and before UI rendering events.")]
     public CompositingMode compositingMode;
 
     /// <summary>
@@ -112,6 +113,11 @@ public class HDCameraUI : MonoBehaviour
     public Camera targetCameraObject;
 
     /// <summary>
+    /// Disable the copy of the main camera color buffer to the internal UI render texture. If enabled it can cause issues with semi-transparent UI and blending.
+    /// </summary>
+    public bool skipCameraColorInit;
+
+    /// <summary>
     /// Event triggered just before the rendering of the UI (after the culling)
     /// </summary>
     public event Action beforeUIRendering;
@@ -121,11 +127,23 @@ public class HDCameraUI : MonoBehaviour
     /// </summary>
     public event Action afterUIRendering;
 
+    internal struct RenderingData
+    {
+        public HDCamera hdCamera;
+    }
+
+    internal RenderingData currrentRenderingData;
+
     CullingResults cullingResults;
     [SerializeField]
     internal bool showAdvancedSettings;
     [SerializeField]
     Shader blitWithBlending; // Force the serialization of the shader in the scene so it ends up in the build
+    [SerializeField]
+    Shader blitInitBackground;
+
+    [NonSerialized]
+    Material backgroundBlitMaterial;
 
     internal Camera attachedCamera;
     HDAdditionalCameraData data;
@@ -134,6 +152,7 @@ public class HDCameraUI : MonoBehaviour
     ProfilingSampler renderingSampler;
     ProfilingSampler uiCameraStackingSampler;
     ProfilingSampler copyToCameraTargetSampler;
+    ProfilingSampler initTransparentUIBackgroundSampler;
 
     // Start is called before the first frame update
     void OnEnable()
@@ -144,8 +163,8 @@ public class HDCameraUI : MonoBehaviour
         if (data == null)
             return;
 
-        data.customRender -= DoRenderUI;
-        data.customRender += DoRenderUI;
+        data.customRender -= StoreHDCamera;
+        data.customRender += StoreHDCamera;
 
         hdTransparentPassNames = new ShaderTagId[]
         {
@@ -166,11 +185,16 @@ public class HDCameraUI : MonoBehaviour
         renderingSampler = new ProfilingSampler("UI Rendering");
         uiCameraStackingSampler = new ProfilingSampler("Render UI Camera Stacking");
         copyToCameraTargetSampler = new ProfilingSampler("Copy To Camera Target");
+        initTransparentUIBackgroundSampler = new ProfilingSampler("Init Transparent UI Background");
 
         if (blitWithBlending == null)
             blitWithBlending = Shader.Find("Hidden/HDRP/UI_Compositing");
+        if (blitInitBackground == null)
+            blitWithBlending = Shader.Find("Hidden/HDRP/InitTransparentUIBackground");
 
         CameraStackingCompositing.uiList.Add(this);
+
+        backgroundBlitMaterial = CoreUtils.CreateEngineMaterial(blitWithBlending);
     }
 
     void OnDisable()
@@ -178,8 +202,9 @@ public class HDCameraUI : MonoBehaviour
         if (data == null)
             return;
 
-        data.customRender -= DoRenderUI;
+        data.customRender -= StoreHDCamera;
         CameraStackingCompositing.uiList.Remove(this);
+        CoreUtils.Destroy(backgroundBlitMaterial);
     }
 
     void UpdateRenderTexture(Camera camera)
@@ -214,13 +239,19 @@ public class HDCameraUI : MonoBehaviour
         return cullingOk;
     }
 
-    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture targetTexture)
+    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture targetTexture, RenderTargetIdentifier targetClearValue)
     {
         beforeUIRendering?.Invoke();
 
         using (new ProfilingScope(cmd, renderingSampler))
         {
-            CoreUtils.SetRenderTarget(cmd, targetTexture.colorBuffer, targetTexture.depthBuffer, ClearFlag.All);
+            if (!skipCameraColorInit)
+            {
+                using (new ProfilingScope(cmd, initTransparentUIBackgroundSampler))
+                    cmd.Blit(BuiltinRenderTextureType.CameraTarget, targetTexture, backgroundBlitMaterial);
+            }
+
+            CoreUtils.SetRenderTarget(cmd, targetTexture.colorBuffer, targetTexture.depthBuffer, skipCameraColorInit ? ClearFlag.All : ClearFlag.DepthStencil);
 
             var drawSettings = new DrawingSettings
             {
@@ -239,13 +270,18 @@ public class HDCameraUI : MonoBehaviour
         afterUIRendering?.Invoke();
     }
 
-    void DoRenderUI(ScriptableRenderContext ctx, HDCamera hdCamera)
-    {
-        if (!hdCamera.camera.enabled)
-            return;
+    void StoreHDCamera(ScriptableRenderContext ctx, HDCamera hdCamera)
+        => currrentRenderingData.hdCamera = hdCamera;
 
+    internal void DoRenderUI(ScriptableRenderContext ctx, CommandBuffer cmd, RenderTargetIdentifier targetClearValue)
+    {
         var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         if (hdrp == null)
+            return;
+
+        var hdCamera = currrentRenderingData.hdCamera;
+
+        if (!hdCamera.camera.enabled)
             return;
 
         if (hdCamera.xr.enabled)
@@ -254,8 +290,6 @@ public class HDCameraUI : MonoBehaviour
         // Update the internal render texture only if we use it
         if (hdCamera.camera.targetTexture == null)
             UpdateRenderTexture(hdCamera.camera);
-
-        var cmd = CommandBufferPool.Get();
 
         // Setup render context for rendering GUI
         ctx.SetupCameraProperties(hdCamera.camera, hdCamera.xr.enabled);
@@ -267,7 +301,7 @@ public class HDCameraUI : MonoBehaviour
         {
             if (CullUI(cmd, ctx, hdCamera.camera))
             {
-                RenderUI(cmd, ctx, hdCamera.camera, renderTexture);
+                RenderUI(cmd, ctx, hdCamera.camera, renderTexture, targetClearValue);
 
                 if (renderInCameraBuffer && hdCamera.camera.targetTexture == null)
                 {

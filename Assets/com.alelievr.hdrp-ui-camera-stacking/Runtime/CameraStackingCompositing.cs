@@ -79,12 +79,13 @@ public static class CameraStackingCompositing
                             break;
                     }
 
+                    // Render the UI of the camera using the current back buffer as clear value
+                    RenderTargetIdentifier target = camera.targetTexture != null ? camera.targetTexture : BuiltinRenderTextureType.CameraTarget;
+                    ui.DoRenderUI(ctx, cmd, target);
+
                     uiProperties.SetTexture("_MainTex", ui.renderTexture);
 
-                    if (camera.targetTexture != null)
-                        cmd.SetRenderTarget(camera.targetTexture);
-                    else
-                        cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+                    cmd.SetRenderTarget(target);
 
                     cmd.SetViewport(camera.pixelRect);
 
