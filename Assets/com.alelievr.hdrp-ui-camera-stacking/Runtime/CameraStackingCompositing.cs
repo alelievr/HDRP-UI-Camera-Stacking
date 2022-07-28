@@ -17,6 +17,7 @@ public static class CameraStackingCompositing
     public static List<HDCameraUI> uiList = new List<HDCameraUI>();
     public static Dictionary<Camera, HDAdditionalCameraData> hdAdditionalCameraData = new Dictionary<Camera, HDAdditionalCameraData>();
     public static Material compositingMaterial;
+    public static Material backgroundBlitMaterial;
     static MaterialPropertyBlock uiProperties = new MaterialPropertyBlock();
 
     static CameraStackingCompositing()
@@ -33,6 +34,8 @@ public static class CameraStackingCompositing
 
         if (compositingMaterial == null)
             compositingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/HDRP/UI_Compositing"));
+        if (backgroundBlitMaterial == null)
+            backgroundBlitMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/HDRP/InitTransparentUIBackground"));
     }
 
     static void EndCameraRendering(ScriptableRenderContext ctx, Camera camera)

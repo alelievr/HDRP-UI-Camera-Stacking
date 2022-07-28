@@ -142,9 +142,6 @@ public class HDCameraUI : MonoBehaviour
     [SerializeField]
     Shader blitInitBackground;
 
-    [NonSerialized]
-    Material backgroundBlitMaterial;
-
     internal Camera attachedCamera;
     HDAdditionalCameraData data;
     ShaderTagId[] hdTransparentPassNames;
@@ -193,8 +190,6 @@ public class HDCameraUI : MonoBehaviour
             blitWithBlending = Shader.Find("Hidden/HDRP/InitTransparentUIBackground");
 
         CameraStackingCompositing.uiList.Add(this);
-
-        backgroundBlitMaterial = CoreUtils.CreateEngineMaterial(blitWithBlending);
     }
 
     void OnDisable()
@@ -204,7 +199,6 @@ public class HDCameraUI : MonoBehaviour
 
         data.customRender -= StoreHDCamera;
         CameraStackingCompositing.uiList.Remove(this);
-        CoreUtils.Destroy(backgroundBlitMaterial);
     }
 
     void UpdateRenderTexture(Camera camera)
@@ -248,7 +242,7 @@ public class HDCameraUI : MonoBehaviour
             if (!skipCameraColorInit)
             {
                 using (new ProfilingScope(cmd, initTransparentUIBackgroundSampler))
-                    cmd.Blit(BuiltinRenderTextureType.CameraTarget, targetTexture, backgroundBlitMaterial);
+                    cmd.Blit(targetClearValue, targetTexture, CameraStackingCompositing.backgroundBlitMaterial);
             }
 
             CoreUtils.SetRenderTarget(cmd, targetTexture.colorBuffer, targetTexture.depthBuffer, skipCameraColorInit ? ClearFlag.All : ClearFlag.DepthStencil);
