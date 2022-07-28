@@ -187,7 +187,7 @@ public class HDCameraUI : MonoBehaviour
         if (blitWithBlending == null)
             blitWithBlending = Shader.Find("Hidden/HDRP/UI_Compositing");
         if (blitInitBackground == null)
-            blitWithBlending = Shader.Find("Hidden/HDRP/InitTransparentUIBackground");
+            blitInitBackground = Shader.Find("Hidden/HDRP/InitTransparentUIBackground");
 
         CameraStackingCompositing.uiList.Add(this);
     }
@@ -246,6 +246,7 @@ public class HDCameraUI : MonoBehaviour
             }
 
             CoreUtils.SetRenderTarget(cmd, targetTexture.colorBuffer, targetTexture.depthBuffer, skipCameraColorInit ? ClearFlag.All : ClearFlag.DepthStencil);
+        }
 
             var drawSettings = new DrawingSettings
             {
@@ -257,9 +258,9 @@ public class HDCameraUI : MonoBehaviour
             var filterSettings = new FilteringSettings(RenderQueueRange.all, uiLayerMask);
 
             ctx.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
             ctx.DrawRenderers(cullingResults, ref drawSettings, ref filterSettings);
-        }
+
+        cmd.Clear();
 
         afterUIRendering?.Invoke();
     }
@@ -303,9 +304,8 @@ public class HDCameraUI : MonoBehaviour
                         cmd.Blit(renderTexture, BuiltinRenderTextureType.CameraTarget, 0, 0);
                 }
             }
+            ctx.ExecuteCommandBuffer(cmd);
         }
-        ctx.ExecuteCommandBuffer(cmd);
-        ctx.Submit();
     }
 
     internal bool IsActive() => isActiveAndEnabled && attachedCamera.isActiveAndEnabled;
