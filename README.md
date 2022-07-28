@@ -23,6 +23,7 @@ Unity Version | HDRP Version | Compatible
 2021.1.x | 11.x | ✔️
 2021.2.x | 12.x | ✔️
 2022.1.x | 13.x | ✔️
+2022.2.x | 14.x | ✔️
 
 <details><summary>Instructions</summary>
 
@@ -73,18 +74,20 @@ In HDRP using more than one camera have a very high performance cost. While you 
 
 The scenes used for the performance test are available in the Benchmark folder of the project. For HDRP, the [Graphics Compositor](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/Compositor-Main.html) was used to perform the UI camera stacking. The UI camera had custom frame settings optimized to render GUI (transparent unlit objects).
 
+All performance metrics were captured at a resolution of 1920x1080 on Windows 10 in the Unity Editor.
+
 Setup | CPU Time (ms) | GPU Time (ms)
 --- | --- | --- 
-HDRP camera stacking | 0.80 | 0.23
-Custom UI camera stacking | 0.05 | 0.19
+HDRP camera stacking | ~1.35 | 0.45
+Custom UI camera stacking | ~0.10 | 0.18
 
 Without much surprise, we can see a big difference on CPU side, mostly because we're skipping all the work of a standard HDRP camera. On the GPU side things are pretty even  though the camera is still a bit slower because of the overhead of compute shader and fullscreen passes that can't be disabled in the frame settings. 
 
 <details><summary>System Information</summary>
   
-- System: Windows 10, DirectX 11
-- CPU: i5-9600k 3.70GHz 6 cores
-- GPU: RTX 2080
+- System: Windows 10 Pro, DirectX 11
+- CPU: i9-10980k 3.00GHz 18 cores
+- GPU: RTX 3090
   
 </details>
 
