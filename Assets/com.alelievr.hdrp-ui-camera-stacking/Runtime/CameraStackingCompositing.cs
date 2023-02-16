@@ -14,11 +14,11 @@ using UnityEditor;
 public static class CameraStackingCompositing
 {
     public static ProfilingSampler compositingSampler;
-    public static List<HDCameraUI> uiList = new List<HDCameraUI>();
-    public static Dictionary<Camera, HDAdditionalCameraData> hdAdditionalCameraData = new Dictionary<Camera, HDAdditionalCameraData>();
+    public static List<HDCameraUI> uiList = new();
+    public static Dictionary<Camera, HDAdditionalCameraData> hdAdditionalCameraData = new();
     public static Material compositingMaterial;
     public static Material backgroundBlitMaterial;
-    static MaterialPropertyBlock uiProperties = new MaterialPropertyBlock();
+    static MaterialPropertyBlock uiProperties = new();
 
     static CameraStackingCompositing()
     {
@@ -121,5 +121,7 @@ public static class CameraStackingCompositing
         ctx.ExecuteCommandBuffer(cmd);
         ctx.Submit();
         CommandBufferPool.Release(cmd);
+        // Set back the render target to camera one otherwise it causes side effects.
+        RenderTexture.active = null;
     }
 }
