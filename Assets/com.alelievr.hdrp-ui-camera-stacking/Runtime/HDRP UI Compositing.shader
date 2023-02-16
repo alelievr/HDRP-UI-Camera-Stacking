@@ -10,7 +10,8 @@ Shader "Hidden/HDRP/UI_Compositing"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-    TEXTURE2D_X(_MainTex);
+    // We don't support XR so it's fine to do that + this makes it compatible with camera Render Textures
+    TEXTURE2D(_MainTex);
 
     struct Attributes
     {

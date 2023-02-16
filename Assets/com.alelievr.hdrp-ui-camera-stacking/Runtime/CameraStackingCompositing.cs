@@ -83,7 +83,7 @@ public static class CameraStackingCompositing
                     }
 
                     // Render the UI of the camera using the current back buffer as clear value
-                    RenderTargetIdentifier target = camera.targetTexture != null ? camera.targetTexture : BuiltinRenderTextureType.CameraTarget;
+                    RenderTexture target = camera.targetTexture;
                     ui.DoRenderUI(ctx, cmd, target);
 
                     uiProperties.SetTexture("_MainTex", ui.renderTexture);

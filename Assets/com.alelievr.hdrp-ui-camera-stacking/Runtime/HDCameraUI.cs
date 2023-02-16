@@ -115,7 +115,8 @@ public class HDCameraUI : MonoBehaviour
     /// <summary>
     /// Disable the copy of the main camera color buffer to the internal UI render texture. If enabled it can cause issues with semi-transparent UI and blending.
     /// </summary>
-    public bool skipCameraColorInit;
+    [Tooltip("Avoid initialization of camera color buffer. Enabling this option is only supported for cameras that renders to a RenderTexture.")]
+    public bool skipCameraColorInit = true;
 
     /// <summary>
     /// Event triggered just before the rendering of the UI (after the culling)
@@ -233,32 +234,32 @@ public class HDCameraUI : MonoBehaviour
         return cullingOk;
     }
 
-    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture targetTexture, RenderTargetIdentifier targetClearValue)
+    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture targetTexture, RenderTexture targetClearValue)
     {
         beforeUIRendering?.Invoke();
 
         using (new ProfilingScope(cmd, renderingSampler))
         {
-            if (!skipCameraColorInit)
+            if (!skipCameraColorInit && targetClearValue != null)
             {
                 using (new ProfilingScope(cmd, initTransparentUIBackgroundSampler))
-                    cmd.Blit(targetClearValue, targetTexture, CameraStackingCompositing.backgroundBlitMaterial);
+                    cmd.Blit(targetClearValue, targetTexture, sourceDepthSlice: 0, destDepthSlice: 0);
             }
 
-            CoreUtils.SetRenderTarget(cmd, targetTexture.colorBuffer, targetTexture.depthBuffer, skipCameraColorInit ? ClearFlag.All : ClearFlag.DepthStencil);
+            CoreUtils.SetRenderTarget(cmd, targetTexture.colorBuffer, targetTexture.depthBuffer, skipCameraColorInit || targetClearValue == null ? ClearFlag.All : ClearFlag.DepthStencil);
         }
 
-            var drawSettings = new DrawingSettings
-            {
-                sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonTransparent | SortingCriteria.CanvasOrder | SortingCriteria.RendererPriority }
-            };
-            for (int i = 0; i < hdTransparentPassNames.Length; i++)
-                drawSettings.SetShaderPassName(i, hdTransparentPassNames[i]);
+        var drawSettings = new DrawingSettings
+        {
+            sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonTransparent | SortingCriteria.CanvasOrder | SortingCriteria.RendererPriority }
+        };
+        for (int i = 0; i < hdTransparentPassNames.Length; i++)
+            drawSettings.SetShaderPassName(i, hdTransparentPassNames[i]);
 
-            var filterSettings = new FilteringSettings(RenderQueueRange.all, uiLayerMask);
+        var filterSettings = new FilteringSettings(RenderQueueRange.all, uiLayerMask);
 
-            ctx.ExecuteCommandBuffer(cmd);
-            ctx.DrawRenderers(cullingResults, ref drawSettings, ref filterSettings);
+        ctx.ExecuteCommandBuffer(cmd);
+        ctx.DrawRenderers(cullingResults, ref drawSettings, ref filterSettings);
 
         cmd.Clear();
 
@@ -268,7 +269,7 @@ public class HDCameraUI : MonoBehaviour
     void StoreHDCamera(ScriptableRenderContext ctx, HDCamera hdCamera)
         => currrentRenderingData.hdCamera = hdCamera;
 
-    internal void DoRenderUI(ScriptableRenderContext ctx, CommandBuffer cmd, RenderTargetIdentifier targetClearValue)
+    internal void DoRenderUI(ScriptableRenderContext ctx, CommandBuffer cmd, RenderTexture targetClearValue)
     {
         var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         if (hdrp == null)
