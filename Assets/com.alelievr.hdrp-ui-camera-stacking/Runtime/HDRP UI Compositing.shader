@@ -2,7 +2,8 @@ Shader "Hidden/HDRP/UI_Compositing"
 {
     Properties
     {
-        _MainTex("Main Texture", 2DArray) = "white" {}
+        _MainTex2D("Main Texture", 2D) = "white" {}
+        _MainTex2DArray("Main Texture", 2DArray) = "white" {}
     }
 
     HLSLINCLUDE
@@ -11,7 +12,9 @@ Shader "Hidden/HDRP/UI_Compositing"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
     // We don't support XR so it's fine to do that + this makes it compatible with camera Render Textures
-    TEXTURE2D(_MainTex);
+    TEXTURE2D(_MainTex2D);
+    TEXTURE2D_ARRAY(_MainTex2DArray);
+    int _Is2DArray;
 
     struct Attributes
     {
@@ -40,7 +43,10 @@ Shader "Hidden/HDRP/UI_Compositing"
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
         float2 uv = varyings.uv;
-        return SAMPLE_TEXTURE2D_X_LOD(_MainTex, s_linear_clamp_sampler, uv, 0);
+        if (_Is2DArray == 0)
+            return SAMPLE_TEXTURE2D_LOD(_MainTex2D, s_linear_clamp_sampler, uv, 0);
+        else
+            return SAMPLE_TEXTURE2D_ARRAY_LOD(_MainTex2DArray, s_linear_clamp_sampler, uv, 0, 0); // VR not supported
     }
     ENDHLSL
 

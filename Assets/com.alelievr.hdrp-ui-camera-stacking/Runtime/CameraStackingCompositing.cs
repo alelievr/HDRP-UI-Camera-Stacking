@@ -86,7 +86,9 @@ public static class CameraStackingCompositing
                     RenderTexture target = camera.targetTexture;
                     ui.DoRenderUI(ctx, cmd, target);
 
-                    uiProperties.SetTexture("_MainTex", ui.renderTexture);
+                    uiProperties.SetTexture("_MainTex2D", ui.renderTexture);
+                    uiProperties.SetTexture("_MainTex2DArray", ui.renderTexture);
+                    uiProperties.SetInt("_Is2DArray", ui.renderTexture.dimension == TextureDimension.Tex2DArray ? 1 : 0);
 
                     cmd.SetRenderTarget(target);
 
