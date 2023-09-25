@@ -173,6 +173,11 @@ public class HDCameraUI : MonoBehaviour
         };
 
         // TODO: Add VR support
+        if (internalRenderTexture != null)
+        {
+            internalRenderTexture.Release();
+            internalRenderTexture = null;
+        }
         internalRenderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1);
         internalRenderTexture.dimension = TextureDimension.Tex2DArray;
         internalRenderTexture.volumeDepth = 1;
@@ -200,6 +205,12 @@ public class HDCameraUI : MonoBehaviour
 
         data.customRender -= StoreHDCamera;
         CameraStackingCompositing.uiList.Remove(this);
+
+        if (internalRenderTexture != null)
+        {
+            internalRenderTexture.Release();
+            internalRenderTexture = null;
+        }
     }
 
     void UpdateRenderTexture(Camera camera)
