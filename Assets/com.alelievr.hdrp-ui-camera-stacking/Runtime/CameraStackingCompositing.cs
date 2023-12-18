@@ -32,10 +32,20 @@ public static class CameraStackingCompositing
         RenderPipelineManager.endCameraRendering += EndCameraRendering;
         compositingSampler = new ProfilingSampler("Composite UI Camera Stacking");
 
-        if (compositingMaterial == null)
-            compositingMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/HDRP/UI_Compositing"));
-        if (backgroundBlitMaterial == null)
-            backgroundBlitMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/HDRP/InitTransparentUIBackground"));
+        TryInitMaterials();
+    }
+
+    static void TryInitMaterials()
+    {
+        if (compositingMaterial != null && backgroundBlitMaterial != null)
+            return;
+
+        var uiCompositingShader = Shader.Find("Hidden/HDRP/UI_Compositing");
+        var initShader = Shader.Find("Hidden/HDRP/InitTransparentUIBackground");
+        if (compositingMaterial == null && uiCompositingShader != null)
+            compositingMaterial = CoreUtils.CreateEngineMaterial(uiCompositingShader);
+        if (backgroundBlitMaterial == null && initShader != null)
+            backgroundBlitMaterial = CoreUtils.CreateEngineMaterial(initShader);
     }
 
     static void EndCameraRendering(ScriptableRenderContext ctx, Camera camera)
@@ -55,6 +65,8 @@ public static class CameraStackingCompositing
 
         if (hdData?.hasCustomRender == true)
             return;
+
+        TryInitMaterials();
 
         var cmd = CommandBufferPool.Get();
         uiList.Sort((c0, c1) => c0.priority.CompareTo(c1.priority));
