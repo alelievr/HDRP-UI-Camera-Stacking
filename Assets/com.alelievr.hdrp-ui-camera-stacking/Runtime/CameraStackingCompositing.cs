@@ -102,7 +102,7 @@ public static class CameraStackingCompositing
 
                     bool bindArray = ui.renderTexture.dimension == TextureDimension.Tex2DArray;
                     uiProperties.SetTexture("_MainTex2D", bindArray ? Texture2D.whiteTexture : ui.renderTexture);
-                    uiProperties.SetTexture("_MainTex2DArray", bindArray ? ui.renderTexture : TextureXR.GetWhiteTexture());
+                    uiProperties.SetTexture("_MainTex2DArray", bindArray ? ui.renderTexture : (Texture)TextureXR.GetWhiteTexture());
                     uiProperties.SetInt("_Is2DArray", bindArray ? 1 : 0);
 
                     if (HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering)
