@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
+using UnityEngine.Experimental.Rendering;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -98,36 +100,60 @@ public static class CameraStackingCompositing
                     RenderTexture target = camera.targetTexture;
                     ui.DoRenderUI(ctx, cmd, target);
 
-                    uiProperties.SetTexture("_MainTex2D", ui.renderTexture);
-                    uiProperties.SetTexture("_MainTex2DArray", ui.renderTexture);
-                    uiProperties.SetInt("_Is2DArray", ui.renderTexture.dimension == TextureDimension.Tex2DArray ? 1 : 0);
+                    bool bindArray = ui.renderTexture.dimension == TextureDimension.Tex2DArray;
+                    uiProperties.SetTexture("_MainTex2D", bindArray ? Texture2D.whiteTexture : ui.renderTexture);
+                    uiProperties.SetTexture("_MainTex2DArray", bindArray ? ui.renderTexture : TextureXR.GetWhiteTexture());
+                    uiProperties.SetInt("_Is2DArray", bindArray ? 1 : 0);
 
-                    cmd.SetRenderTarget(target);
-
-                    cmd.SetViewport(camera.pixelRect);
-
-                    // Do the UI compositing
-                    switch (ui.compositingMode)
+                    if (HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering)
                     {
-                        default:
-                        case HDCameraUI.CompositingMode.Automatic:
-                            if (camera.targetTexture != null)
-                                cmd.DrawProcedural(Matrix4x4.identity, compositingMaterial, 0, MeshTopology.Triangles, 3, 1, uiProperties);
-                            else
-                                cmd.DrawProcedural(Matrix4x4.identity, compositingMaterial, 0, MeshTopology.Triangles, 3, 1, uiProperties);
-                            break;
-                        case HDCameraUI.CompositingMode.Custom:
-                            if (ui.compositingMaterial != null)
-                            {
+                        var display = XRSystem.GetActiveDisplay();
+                        if (display == null || !display.running)
+                        {
+                            FinalCompositing(target, camera.pixelRect);
+                            continue;
+                        }
+                        var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                        int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
+                        display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode);
+                        for (int i = 0; i < blitDesc.blitParamsCount; ++i)
+                        {
+                            blitDesc.GetBlitParameter(i, out var blitParams);
+                            FinalCompositing(blitParams.srcTex, new Rect(0, 0, blitParams.srcTex.width, blitParams.srcTex.height), blitParams.srcTexArraySlice);
+                        }
+                    }
+                    else
+                    {
+                        FinalCompositing(target, camera.pixelRect);
+                    }
+
+                    void FinalCompositing(RenderTexture outputRT, Rect viewport, int rtSliceIndex = 0)
+                    {
+                        cmd.SetRenderTarget(outputRT, 0, CubemapFace.Unknown, rtSliceIndex);
+                        cmd.SetViewport(viewport);
+                        // Do the UI compositing
+                        switch (ui.compositingMode)
+                        {
+                            default:
+                            case HDCameraUI.CompositingMode.Automatic:
                                 if (camera.targetTexture != null)
-                                    cmd.DrawProcedural(Matrix4x4.identity, ui.compositingMaterial, ui.compositingMaterialPass, MeshTopology.Triangles, 3, 1, uiProperties);
+                                    cmd.DrawProcedural(Matrix4x4.identity, compositingMaterial, 0, MeshTopology.Triangles, 3, 1, uiProperties);
                                 else
-                                    cmd.DrawProcedural(Matrix4x4.identity, ui.compositingMaterial, ui.compositingMaterialPass, MeshTopology.Triangles, 3, 1, uiProperties);
-                            }
-                            break;
-                        case HDCameraUI.CompositingMode.Manual:
-                            // The user manually composite the UI.
-                            break;
+                                    cmd.DrawProcedural(Matrix4x4.identity, compositingMaterial, 0, MeshTopology.Triangles, 3, 1, uiProperties);
+                                break;
+                            case HDCameraUI.CompositingMode.Custom:
+                                if (ui.compositingMaterial != null)
+                                {
+                                    if (camera.targetTexture != null)
+                                        cmd.DrawProcedural(Matrix4x4.identity, ui.compositingMaterial, ui.compositingMaterialPass, MeshTopology.Triangles, 3, 1, uiProperties);
+                                    else
+                                        cmd.DrawProcedural(Matrix4x4.identity, ui.compositingMaterial, ui.compositingMaterialPass, MeshTopology.Triangles, 3, 1, uiProperties);
+                                }
+                                break;
+                            case HDCameraUI.CompositingMode.Manual:
+                                // The user manually composite the UI.
+                                break;
+                        }
                     }
                 }
             }

@@ -133,7 +133,9 @@ public class HDCameraUI : MonoBehaviour
         public HDCamera hdCamera;
     }
 
-    internal RenderingData currrentRenderingData;
+    internal RenderingData currentRenderingData;
+
+    RenderTexture internalDepthBuffer;
 
     CullingResults cullingResults;
     [SerializeField]
@@ -178,11 +180,18 @@ public class HDCameraUI : MonoBehaviour
             internalRenderTexture.Release();
             internalRenderTexture = null;
         }
-        internalRenderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1);
-        internalRenderTexture.dimension = TextureDimension.Tex2DArray;
-        internalRenderTexture.volumeDepth = 1;
-        internalRenderTexture.depth = 24;
-        internalRenderTexture.name = "HDCameraUI Output Target";
+        internalRenderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1)
+        {
+            dimension = TextureXR.dimension,
+            volumeDepth = 1,
+            depth = 0,
+            name = "HDCameraUI Output Target"
+        };
+
+        internalDepthBuffer = new RenderTexture(1, 1, GraphicsFormat.None, depthStencilFormat: GraphicsFormat.D32_SFloat_S8_UInt)
+        {
+            name = "HDCameraUI Depth Target"
+        };
 
         cullingSampler = new ProfilingSampler("UI Culling");
         renderingSampler = new ProfilingSampler("UI Rendering");
@@ -224,6 +233,11 @@ public class HDCameraUI : MonoBehaviour
             internalRenderTexture.height = Mathf.Max(4, camera.pixelHeight);
             internalRenderTexture.graphicsFormat = graphicsFormat;
             internalRenderTexture.Create();
+
+            internalDepthBuffer.Release();
+            internalDepthBuffer.width = Mathf.Max(4, camera.pixelWidth);
+            internalDepthBuffer.height = Mathf.Max(4, camera.pixelHeight);
+            internalDepthBuffer.Create();
         }
     }
 
@@ -245,7 +259,7 @@ public class HDCameraUI : MonoBehaviour
         return cullingOk;
     }
 
-    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture targetTexture, RenderTexture targetClearValue)
+    void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture colorBuffer, RenderTexture depthBuffer, RenderTexture targetClearValue)
     {
         beforeUIRendering?.Invoke();
 
@@ -254,10 +268,17 @@ public class HDCameraUI : MonoBehaviour
             if (!skipCameraColorInit && targetClearValue != null)
             {
                 using (new ProfilingScope(cmd, initTransparentUIBackgroundSampler))
-                    cmd.Blit(targetClearValue, targetTexture, sourceDepthSlice: 0, destDepthSlice: 0);
+                {
+                    for (int i = 0; i < colorBuffer.volumeDepth; i++)
+                        cmd.Blit(targetClearValue, colorBuffer, sourceDepthSlice: 0, destDepthSlice: i);
+                }
             }
 
-            CoreUtils.SetRenderTarget(cmd, targetTexture.colorBuffer, targetTexture.depthBuffer, skipCameraColorInit || targetClearValue == null ? ClearFlag.All : ClearFlag.DepthStencil);
+            // Prefer using the color buffer depth if there is any (user provided render texture)
+            if (colorBuffer.depthStencilFormat != GraphicsFormat.None)
+                CoreUtils.SetRenderTarget(cmd, colorBuffer.colorBuffer, colorBuffer.depthBuffer, skipCameraColorInit || targetClearValue == null ? ClearFlag.All : ClearFlag.DepthStencil);
+            else
+                CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, skipCameraColorInit || targetClearValue == null ? ClearFlag.All : ClearFlag.DepthStencil);
         }
 
         var drawSettings = new DrawingSettings
@@ -278,7 +299,7 @@ public class HDCameraUI : MonoBehaviour
     }
 
     void StoreHDCamera(ScriptableRenderContext ctx, HDCamera hdCamera)
-        => currrentRenderingData.hdCamera = hdCamera;
+        => currentRenderingData.hdCamera = hdCamera;
 
     internal void DoRenderUI(ScriptableRenderContext ctx, CommandBuffer cmd, RenderTexture targetClearValue)
     {
@@ -286,13 +307,10 @@ public class HDCameraUI : MonoBehaviour
         if (hdrp == null)
             return;
 
-        var hdCamera = currrentRenderingData.hdCamera;
+        var hdCamera = currentRenderingData.hdCamera;
 
-        if (!hdCamera.camera.enabled)
+        if (hdCamera == null || !hdCamera.camera.enabled)
             return;
-
-        if (hdCamera.xr.enabled)
-            Debug.LogError("XR is not supported by HDCameraUI the component.");
 
         // Update the internal render texture only if we use it
         if (hdCamera.camera.targetTexture == null)
@@ -308,7 +326,7 @@ public class HDCameraUI : MonoBehaviour
         {
             if (CullUI(cmd, ctx, hdCamera.camera))
             {
-                RenderUI(cmd, ctx, hdCamera.camera, renderTexture, targetClearValue);
+                RenderUI(cmd, ctx, hdCamera.camera, renderTexture, internalDepthBuffer, targetClearValue);
 
                 if (renderInCameraBuffer && hdCamera.camera.targetTexture == null)
                 {
