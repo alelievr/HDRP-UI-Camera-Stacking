@@ -24,6 +24,8 @@ Unity Version | HDRP Version | Compatible
 2021.2.x | 12.x | ✔️
 2022.1.x | 13.x | ✔️
 2022.2.x | 14.x | ✔️
+2022.3.x | 14.x | ✔️
+2023.1.x | 15.x | ✔️
 
 <details><summary>Instructions</summary>
 
