@@ -2,7 +2,11 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+#if UNITY_6000_0_OR_NEWER
+using UnityEngine.Rendering.RenderGraphModule;
+#else
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
