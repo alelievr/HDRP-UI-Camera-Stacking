@@ -18,6 +18,7 @@ public class HDCameraUIEditor : Editor
     SerializedProperty targetCameraLayer;
     SerializedProperty targetCameraObject;
     SerializedProperty compositingMode;
+    SerializedProperty msaa;
     SerializedProperty compositingMaterialPass;
     SerializedProperty renderInCameraBuffer;
     SerializedProperty skipCameraColorInit;
@@ -59,6 +60,7 @@ public class HDCameraUIEditor : Editor
         compositingMaterial = serializedObject.FindProperty(nameof(cameraUI.compositingMaterial));
         graphicsFormat = serializedObject.FindProperty(nameof(cameraUI.graphicsFormat));
         compositingMode = serializedObject.FindProperty(nameof(cameraUI.compositingMode));
+        msaa = serializedObject.FindProperty(nameof(cameraUI.msaa));
         compositingMaterialPass = serializedObject.FindProperty(nameof(cameraUI.compositingMaterialPass));
         renderInCameraBuffer = serializedObject.FindProperty(nameof(cameraUI.renderInCameraBuffer));
         targetCamera = serializedObject.FindProperty(nameof(cameraUI.targetCamera));
@@ -85,6 +87,8 @@ public class HDCameraUIEditor : Editor
 
         // Show Mode
         EditorGUILayout.PropertyField(compositingMode);
+        
+        EditorGUILayout.PropertyField(msaa);
 
         var mode = (HDCameraUI.CompositingMode)compositingMode.intValue;
 

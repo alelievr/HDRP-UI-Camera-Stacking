@@ -23,7 +23,7 @@ public class HDCameraUI : MonoBehaviour
         /// <summary>Automatically combines both UI and camera color using a custom material (compositingMaterial field). The material must be compatible with the Blit() command.</summary>
         Custom,
     }
-
+    
     /// <summary>
     /// Specifies on which camera the UI needs to be rendered.
     /// </summary>
@@ -56,6 +56,13 @@ public class HDCameraUI : MonoBehaviour
     /// </summary>
     [Tooltip("Select how the UI will be composited. Custom requires a material with a fullscreen shader. Manual let's you do the compositing in C# manually using the after and before UI rendering events.")]
     public CompositingMode compositingMode;
+
+    /// <summary>
+    /// Specifies how many MSAA samples to use when rendering the UI. If MSAA Sample is set to None, then the MSAA is disabled.
+    /// This option is automatically disabled when the target texture of the camera is not null. In this case to enable MSAA for the UI, enable MSAA on the target texture of the camera.
+    /// </summary>
+    [Tooltip("Enables MSAA for the rendering of the UI. This option doesn't work when a target texture is set in the camera.")]
+    public MSAASamples msaa = MSAASamples.None;
 
     /// <summary>
     /// Use this property to apply a post process shader effect on the UI. The shader must be compatible with Graphics.Blit().
@@ -182,15 +189,17 @@ public class HDCameraUI : MonoBehaviour
         }
         internalRenderTexture = new RenderTexture(1, 1, 0, graphicsFormat, 1)
         {
+            name = "HDCameraUI Output Target",
             dimension = TextureXR.dimension,
             volumeDepth = 1,
             depth = 0,
-            name = "HDCameraUI Output Target"
+            antiAliasing = (int)msaa,
         };
 
         internalDepthBuffer = new RenderTexture(1, 1, GraphicsFormat.None, depthStencilFormat: GraphicsFormat.D32_SFloat_S8_UInt)
         {
-            name = "HDCameraUI Depth Target"
+            name = "HDCameraUI Depth Target",
+            antiAliasing = (int)msaa,
         };
 
         cullingSampler = new ProfilingSampler("UI Culling");
@@ -226,17 +235,20 @@ public class HDCameraUI : MonoBehaviour
     {
         if (camera.pixelWidth != internalRenderTexture.width
             || camera.pixelHeight != internalRenderTexture.height
-            || internalRenderTexture.graphicsFormat != graphicsFormat)
+            || internalRenderTexture.graphicsFormat != graphicsFormat
+            || internalRenderTexture.antiAliasing != (int)msaa)
         {
             internalRenderTexture.Release();
             internalRenderTexture.width = Mathf.Max(4, camera.pixelWidth);
             internalRenderTexture.height = Mathf.Max(4, camera.pixelHeight);
             internalRenderTexture.graphicsFormat = graphicsFormat;
+            internalRenderTexture.antiAliasing = (int)msaa;
             internalRenderTexture.Create();
 
             internalDepthBuffer.Release();
             internalDepthBuffer.width = Mathf.Max(4, camera.pixelWidth);
             internalDepthBuffer.height = Mathf.Max(4, camera.pixelHeight);
+            internalDepthBuffer.antiAliasing = (int)msaa;
             internalDepthBuffer.Create();
         }
     }
@@ -279,22 +291,22 @@ public class HDCameraUI : MonoBehaviour
                 CoreUtils.SetRenderTarget(cmd, colorBuffer.colorBuffer, colorBuffer.depthBuffer, skipCameraColorInit || targetClearValue == null ? ClearFlag.All : ClearFlag.DepthStencil);
             else
                 CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, skipCameraColorInit || targetClearValue == null ? ClearFlag.All : ClearFlag.DepthStencil);
+    
+            var drawSettings = new DrawingSettings
+            {
+                sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonTransparent | SortingCriteria.CanvasOrder | SortingCriteria.RendererPriority }
+            };
+            for (int i = 0; i < hdTransparentPassNames.Length; i++)
+                drawSettings.SetShaderPassName(i, hdTransparentPassNames[i]);
+    
+            var filterSettings = new FilteringSettings(RenderQueueRange.all, uiLayerMask);
+    
+            ctx.ExecuteCommandBuffer(cmd);
+            ctx.DrawRenderers(cullingResults, ref drawSettings, ref filterSettings);
+    
+            cmd.Clear();
         }
-
-        var drawSettings = new DrawingSettings
-        {
-            sortingSettings = new SortingSettings(camera) { criteria = SortingCriteria.CommonTransparent | SortingCriteria.CanvasOrder | SortingCriteria.RendererPriority }
-        };
-        for (int i = 0; i < hdTransparentPassNames.Length; i++)
-            drawSettings.SetShaderPassName(i, hdTransparentPassNames[i]);
-
-        var filterSettings = new FilteringSettings(RenderQueueRange.all, uiLayerMask);
-
-        ctx.ExecuteCommandBuffer(cmd);
-        ctx.DrawRenderers(cullingResults, ref drawSettings, ref filterSettings);
-
-        cmd.Clear();
-
+    
         afterUIRendering?.Invoke();
     }
 
