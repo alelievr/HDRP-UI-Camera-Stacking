@@ -13,11 +13,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_EnablePreReleasePackages: 1
-  m_EnablePackageDependencies: 0
   m_AdvancedSettingsExpanded: 1
   m_ScopedRegistriesSettingsExpanded: 1
   m_SeeAllPackageVersions: 0
+  m_DismissPreviewPackagesInUse: 0
   oneTimeWarningShown: 1
+  oneTimeDeprecatedPopUpShown: 1
   m_Registries:
   - m_Id: main
     m_Name: 
@@ -25,29 +26,20 @@ MonoBehaviour:
     m_Scopes: []
     m_IsDefault: 1
     m_Capabilities: 7
-  - m_Id: scoped:Open UPM
+    m_ConfigSource: 0
+  - m_Id: scoped:project:Open UPM
     m_Name: Open UPM
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.alelievr
     m_IsDefault: 0
     m_Capabilities: 0
+    m_ConfigSource: 4
   m_UserSelectedRegistryName: Open UPM
   m_UserAddingNewScopedRegistry: 0
   m_RegistryInfoDraft:
-    m_ErrorMessage: 
-    m_Original:
-      m_Id: scoped:Open UPM
-      m_Name: Open UPM
-      m_Url: https://package.openupm.com
-      m_Scopes:
-      - com.alelievr
-      m_IsDefault: 0
-      m_Capabilities: 0
     m_Modified: 0
-    m_Name: Open UPM
-    m_Url: https://package.openupm.com
-    m_Scopes:
-    - com.alelievr
-    m_SelectedScopeIndex: 0
+    m_ErrorMessage: 
+    m_UserModificationsInstanceId: -894
+    m_OriginalInstanceId: -898
   m_LoadAssets: 0
