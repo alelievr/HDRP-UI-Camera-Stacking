@@ -1,7 +1,9 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.XR;
 #if UNITY_6000_0_OR_NEWER
 using UnityEngine.Rendering.RenderGraphModule;
 #else
@@ -19,4 +21,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
     }
+
+#if UNITY_2021_3
+    partial class XRSystem
+    {
+        public static XRDisplaySubsystem GetActiveDisplay() => displayList.FirstOrDefault();
+    }
+#endif
 }
