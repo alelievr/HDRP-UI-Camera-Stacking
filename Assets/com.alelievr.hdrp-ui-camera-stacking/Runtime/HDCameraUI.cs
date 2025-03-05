@@ -274,8 +274,8 @@ public class HDCameraUI : MonoBehaviour
     void RenderUI(CommandBuffer cmd, ScriptableRenderContext ctx, Camera camera, RenderTexture colorBuffer, RenderTexture depthBuffer, RenderTexture targetClearValue)
     {
         beforeUIRendering?.Invoke();
-
-        using (new ProfilingScope(cmd, renderingSampler))
+        
+        using (new ProfilingScope(renderingSampler))
         {
             if (!skipCameraColorInit && targetClearValue != null)
             {
@@ -303,10 +303,10 @@ public class HDCameraUI : MonoBehaviour
     
             ctx.ExecuteCommandBuffer(cmd);
             ctx.DrawRenderers(cullingResults, ref drawSettings, ref filterSettings);
-    
-            cmd.Clear();
         }
     
+        cmd.Clear();
+
         afterUIRendering?.Invoke();
     }
 
@@ -334,7 +334,7 @@ public class HDCameraUI : MonoBehaviour
         // Setup HDRP camera properties to render HDRP shaders
         hdrp.UpdateCameraCBuffer(cmd, hdCamera);
 
-        using (new ProfilingScope(cmd, uiCameraStackingSampler))
+        using (new ProfilingScope(uiCameraStackingSampler))
         {
             if (CullUI(cmd, ctx, hdCamera.camera))
             {
@@ -342,12 +342,13 @@ public class HDCameraUI : MonoBehaviour
 
                 if (renderInCameraBuffer && hdCamera.camera.targetTexture == null)
                 {
-                    using (new ProfilingScope(cmd, copyToCameraTargetSampler))
+                    using (new ProfilingScope(copyToCameraTargetSampler))
                         cmd.Blit(renderTexture, BuiltinRenderTextureType.CameraTarget, 0, 0);
                 }
             }
-            ctx.ExecuteCommandBuffer(cmd);
         }
+        
+        ctx.ExecuteCommandBuffer(cmd);
     }
 
     internal bool IsActive() => isActiveAndEnabled && attachedCamera.isActiveAndEnabled;
