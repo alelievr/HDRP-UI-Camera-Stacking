@@ -325,7 +325,7 @@ public class HDCameraUI : MonoBehaviour
             return;
 
         // Update the internal render texture only if we use it
-        if (hdCamera.camera.targetTexture == null)
+        if (hdCamera.camera.targetTexture == null || renderTexture.depthStencilFormat == GraphicsFormat.None)
             UpdateRenderTexture(hdCamera.camera);
 
         // Setup render context for rendering GUI
