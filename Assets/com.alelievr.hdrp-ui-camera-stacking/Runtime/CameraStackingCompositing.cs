@@ -107,12 +107,15 @@ public static class CameraStackingCompositing
 
                     if (HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering)
                     {
+#if ENABLE_VR && ENABLE_XR_MODULE
                         var display = XRSystem.GetActiveDisplay();
                         if (display == null || !display.running)
                         {
                             FinalCompositing(target, camera.pixelRect);
                             continue;
                         }
+#endif
+
                         var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                         int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                         display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode);
