@@ -114,7 +114,6 @@ public static class CameraStackingCompositing
                             FinalCompositing(target, camera.pixelRect);
                             continue;
                         }
-#endif
 
                         var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                         int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
@@ -124,6 +123,7 @@ public static class CameraStackingCompositing
                             blitDesc.GetBlitParameter(i, out var blitParams);
                             FinalCompositing(blitParams.srcTex, new Rect(0, 0, blitParams.srcTex.width, blitParams.srcTex.height), blitParams.srcTexArraySlice);
                         }
+#endif
                     }
                     else
                     {
